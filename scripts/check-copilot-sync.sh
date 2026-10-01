@@ -27,16 +27,21 @@ if strip(claude_mp) != strip(copilot_mp):
     errors.append(".github/plugin/marketplace.json differs from .claude-plugin/marketplace.json (beyond plugin sources)")
 
 claude_lsp = load(".lsp.json")["ballerina"]
-copilot_lsp = load("lsp-config/servers.json")["lspServers"]["ballerina"]
+copilot_lsp = load("com.github.copilot/lsp.json")["lspServers"]["ballerina"]
 mapped = {"command": claude_lsp["command"], "args": claude_lsp["args"],
           "fileExtensions": claude_lsp["extensionToLanguage"],
           "initializationOptions": claude_lsp["initializationOptions"]}
 if mapped != copilot_lsp:
-    errors.append("lsp-config/servers.json differs from .lsp.json")
+    errors.append("com.github.copilot/lsp.json differs from .lsp.json")
+
+claude_mcp = load(".mcp.json")["mcpServers"]["ballerina-library"]
+copilot_mcp = load("mcp.json")["mcpServers"]["ballerina-library"]
+if [a.replace("${CLAUDE_PLUGIN_ROOT}", "${PLUGIN_ROOT}") for a in claude_mcp["args"]] != copilot_mcp["args"] or claude_mcp["command"] != copilot_mcp["command"]:
+    errors.append("mcp.json differs from .mcp.json")
 
 claude_agent = body("agents/library.md").replace("via Bash", "via the shell")
-if claude_agent != body(".github/plugin/agents/library.agent.md"):
-    errors.append(".github/plugin/agents/library.agent.md body differs from agents/library.md")
+if claude_agent != body("com.github.copilot/agents/library.md"):
+    errors.append("com.github.copilot/agents/library.md body differs from agents/library.md")
 
 for e in errors:
     print(f"out of sync: {e}", file=sys.stderr)

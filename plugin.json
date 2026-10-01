@@ -1,4 +1,5 @@
 {
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "ballerina",
   "version": "0.4.3",
   "description": "Ballerina language support — LSP code intelligence for .bal files plus an AI coding assistant for writing integrations and services, discovering libraries from Ballerina Central, and running and testing projects.",
@@ -9,7 +10,5 @@
   "homepage": "https://github.com/ballerina-platform/skills",
   "repository": "https://github.com/ballerina-platform/skills",
   "license": "Apache-2.0",
-  "keywords": ["ballerina", "lsp", "integration", "wso2", "cloud-native"],
-  "agents": "./.github/plugin/agents/",
-  "lspServers": "./lsp-config/servers.json"
+  "keywords": ["ballerina", "lsp", "integration", "wso2", "cloud-native"]
 }
