@@ -2,7 +2,7 @@
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "ballerina",
   "displayName": "Ballerina",
-  "version": "0.4.3",
+  "version": "0.5.0",
   "description": "Ballerina language support — LSP code intelligence for .bal files plus an AI coding assistant for writing integrations and services, discovering libraries from Ballerina Central, and running and testing projects.",
   "author": {
     "name": "WSO2",
