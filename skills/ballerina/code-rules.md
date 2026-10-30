@@ -85,4 +85,5 @@ These are not optional extras; they are the rules for their domain, kept out of 
 - Function parameters are immutable — assigning to one fails with *cannot assign a value to function argument*. Copy it into a local variable and modify that.
 - Declare listeners and attach services statically at module level; do not register or attach them at runtime.
 - Propagate errors with `check`, or handle them with a `do`/`on fail` block; never use `checkpanic` to silence an error return in real code.
+- When a comparison must ignore case, use `equalsIgnoreCaseAscii()` against each known value. Don't normalise with `toLowerAscii()`/`toUpperAscii()`: as of 2201.14 they also convert non-ASCII letters and follow the JVM locale, so a non-ASCII look-alike of a letter can match.
 - `//` is the only comment form — Ballerina has no `/* */` block comments (`invalid token '/*'`). `#` introduces documentation.
