@@ -30,6 +30,7 @@ These are not optional extras; they are the rules for their domain, kept out of 
 
 - Use records for all data structures. Never use `map<json>`, `map<anydata>`, or raw `json`.
 - Prefer closed records (`record {| ... |}`) for data shapes you own. Use an open record only when tolerating extra/unknown fields is deliberate (e.g. a loosely-specified inbound payload).
+- To copy a record with one field changed, `clone()` it and assign the field. A spread followed by that field (`{...r, f: v}`) is a `duplicate key` error.
 - Never access or manipulate a `json` variable directly. Define a record, convert json to it (`cloneWithType()` or `fromJsonStringWithType()`), then use the record.
 - If a return typedesc is marked `<>` in API docs, define a custom record for the expected data shape.
 - If a parameter type is `record {|anydata...;|}`, define or reuse an explicit named record — do not pass an anonymous literal.
@@ -39,7 +40,7 @@ These are not optional extras; they are the rules for their domain, kept out of 
 ## Identifiers
 
 - Names must be descriptive. Single letters and bare abbreviations (`x`, `res`, `tmp`) are not acceptable; **two-word camelCase** is the norm for variables, parameters and record fields (e.g., `userName`, `baseUrl`, `responseBody`).
-- Exception: a record whose fields bind to external payload/JSON keys (e.g. via `cloneWithType()`) must use the **exact source key names** — even if that means single-word or PascalCase (e.g. `Name`, `CreatedDate`). The wire contract wins over the naming convention here.
+- Exception: a record whose fields bind to external payload/JSON keys (e.g. via `cloneWithType()`) must use the **exact source key names** — even if that means single-word or PascalCase (e.g. `Name`, `CreatedDate`). The wire contract wins over the naming convention here. A key that is a Ballerina keyword is written as a quoted identifier, e.g. `string 'table;`; the JSON key `table` still binds.
 
 ## Function Calls
 
