@@ -4,8 +4,10 @@ Read this file when `bal version` fails or `bal` is not found on the user's mach
 
 ## Prerequisites
 
-- **Java 21 or later** — required by the Ballerina runtime
-  - Check: `java -version`
+- **Java** — the version follows the distribution: 2201.14.x runs on Java 25, 2201.13.x on Java 21.
+  - The `.pkg`/`.deb`/`.rpm`/`.msi` installers and the platform zips (`-linux`, `-macos`, `-windows`) bundle a matching runtime under `dependencies/` that `bal` uses. Homebrew installs its own `openjdk` as a dependency. Only the platform-independent zip uses the Java on `JAVA_HOME`/`PATH`.
+  - A jar from `bal build` needs at least that Java version wherever it runs — Docker base images and servers included.
+  - Check: `bal version` (distribution); `java -version` matters only for the platform-independent zip and for where the jar runs
   - Install: https://adoptium.net (Eclipse Temurin recommended)
 
 ## Install Ballerina

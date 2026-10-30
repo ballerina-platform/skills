@@ -15,6 +15,7 @@ These are not optional extras; they are the rules for their domain, kept out of 
 | More than one package in the repo, or a service **plus** a `main` | [rules/workspace.md](rules/workspace.md) |
 | The program connects to a broker, database, or other external server | [rules/integration-testing.md](rules/integration-testing.md) |
 | Writing tests — only when the user asked for them | [rules/tests.md](rules/tests.md) |
+| A `Dockerfile`, or packaging for Docker or Kubernetes | the Docker and Kubernetes sections of [troubleshooting/deployment.md](troubleshooting/deployment.md) |
 
 ## Structure
 
