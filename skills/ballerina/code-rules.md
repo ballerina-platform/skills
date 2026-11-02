@@ -30,7 +30,7 @@ These are not optional extras; they are the rules for their domain, kept out of 
 
 - Use records for all data structures. Never use `map<json>`, `map<anydata>`, or raw `json`.
 - Prefer closed records (`record {| ... |}`) for data shapes you own. Use an open record only when tolerating extra/unknown fields is deliberate (e.g. a loosely-specified inbound payload).
-- To copy a record with one field changed, `clone()` it and assign the field. A spread followed by that field (`{...r, f: v}`) is a `duplicate key` error.
+- To copy a record with one field changed: `let T {f: _, ...rest} = r in {...rest, f: v}` (a shallow copy; destructure `r.clone()` for a deep one).
 - Never access or manipulate a `json` variable directly. Define a record, convert json to it (`cloneWithType()` or `fromJsonStringWithType()`), then use the record.
 - If a return typedesc is marked `<>` in API docs, define a custom record for the expected data shape.
 - If a parameter type is `record {|anydata...;|}`, define or reuse an explicit named record — do not pass an anonymous literal.
