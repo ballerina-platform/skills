@@ -59,7 +59,7 @@ The part in braces names the module that raised the error: `{ballerina}` is the 
 | `{ballerina}JSONOperationError`          | Field access on a `json` value that is not a mapping (`five.a`)      | Check the shape before drilling in, or convert to a record first                         |
 | `{ballerina/lang.int}NumberParsingError` | `int:fromString("abc")` (`float:`/`decimal:` have their own)         | Handle the `error` the function returns; validate input before converting                |
 | `{ballerina/lang.array}IndexOutOfRange`  | Reading past the end of an array or tuple                            | Guard with `if i < arr.length()`                                                          |
-| `{ballerina/lang.map}KeyNotFound`        | `m.get(k)`, or `json` field access, on a key that is not present     | Use `m.hasKey(k)` or member access `m[k]` (returns `()`); `j?.k` for optional `json` keys |
+| `{ballerina/lang.map}KeyNotFound`        | `m.get(k)`, `m.remove(k)`, or `json` field access, on a key that is not present | Use `m.hasKey(k)`, member access `m[k]` (returns `()`) or `m.removeIfHasKey(k)`; `j?.k` for optional `json` keys |
 
 ### Worked example — `TypeCastError`
 

@@ -18,7 +18,7 @@
 
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { beforeEach, test } from "node:test";
@@ -93,4 +93,28 @@ test("hooks exit cleanly on input that is not JSON", () => {
         assert.equal(result.status, 0);
         assert.equal(result.stdout, "");
     }
+});
+
+test("typing /ballerina counts as loading the skill", () => {
+    assert.equal(runHook("prompt-nudge.mjs", { session_id: "s1", prompt: "/ballerina write a service", cwd: stateDir }), "");
+    const write = { session_id: "s1", tool_name: "Write", tool_input: { file_path: "main.bal" } };
+    assert.match(reminderOf(runHook("remind.mjs", write)), /code-rules\.md/);
+});
+
+test("reading the code rules through Bash counts", () => {
+    runHook("mark.mjs", { session_id: "s1", tool_name: "Skill", tool_input: { skill: "ballerina:ballerina" } });
+    runHook("mark.mjs", { session_id: "s1", tool_name: "Bash", tool_input: { command: "cat /p/skills/ballerina/code-rules.md" } });
+    assert.equal(runHook("remind.mjs", { session_id: "s1", tool_name: "Write", tool_input: { file_path: "main.bal" } }), "");
+});
+
+test("a MultiEdit of a .bal file and a command on Ballerina.toml both remind", () => {
+    assert.ok(reminderOf(runHook("remind.mjs", { session_id: "s1", tool_name: "MultiEdit", tool_input: { file_path: "a.bal" } })));
+    assert.ok(reminderOf(runHook("remind.mjs", { session_id: "s2", tool_name: "Bash", tool_input: { command: "cat Ballerina.toml" } })));
+});
+
+test("session end removes the session state", () => {
+    runHook("mark.mjs", { session_id: "s1", tool_name: "Skill", tool_input: { skill: "ballerina" } });
+    assert.ok(existsSync(join(stateDir, "ballerina-skill-s1.json")));
+    runHook("session-end.mjs", { session_id: "s1" });
+    assert.ok(!existsSync(join(stateDir, "ballerina-skill-s1.json")));
 });

@@ -32,8 +32,7 @@ function write(path, text) {
     writeFileSync(path, text);
 }
 
-function example(slug, code, description, body) {
-    const base = slug.replaceAll("-", "_");
+function example(slug, code, description, body, base = slug.replaceAll("-", "_")) {
     write(join(balHome, "examples", slug, `${base}.bal`), code);
     write(join(balHome, "examples", slug, `${base}.metatags`), `description: This BBE demonstrates ${description}.\nkeywords: ballerina, bbe\n`);
     write(join(balHome, "examples", slug, `${base}.md`), `# ${slug}\n\n${body}\n\n::: code ${base}.bal :::\n`);
@@ -49,12 +48,23 @@ before(() => {
     write(join(skillDir, "troubleshooting", "compiler.md"), "# Compiler\n\n## Common errors\n\n| `invalid record constructor: duplicate key 'X'` | Use the let form |\n");
     example("xmlns-declarations", "xmlns \"http://example.com\" as eg;\n", "xmlns declarations", "Bind a prefix to a namespace URL.");
     example("records", "type Person record {| string name; |};\n", "records", "A record has named fields.");
+    example("strings", "string csv = string:'join(\",\", \"a\", \"b\");\n", "string functions", "Strings are immutable.");
+    example("grpc-service-headers", "service \"Greeter\" on new grpc:Listener(9090) {}\n", "a gRPC service that reads headers",
+        "Headers travel with each call.", "grpc_simple_with_headers_service");
 });
 
-function lookup(...args) {
+function lookupWith(env, ...args) {
     const result = spawnSync(process.execPath, [join(skillDir, "scripts", "lookup.mjs"), ...args],
-        { encoding: "utf8", env: { ...process.env, BAL_LOOKUP_HOME: balHome } });
+        { encoding: "utf8", env: { ...process.env, BAL_LOOKUP_HOME: balHome, ...env } });
     return { code: result.status, out: result.stdout, err: result.stderr };
+}
+
+function lookup(...args) {
+    return lookupWith({}, ...args);
+}
+
+function examplesPart(out) {
+    return out.split("== examples")[1];
 }
 
 test("finds the skill section that names an error, with its line", () => {
@@ -83,4 +93,27 @@ test("prints one example's code, and its notes without the page directives", () 
 test("usage errors exit non-zero", () => {
     assert.equal(lookup().code, 2);
     assert.equal(lookup("example").code, 2);
+});
+
+test("finds and prints an example whose files are not named after its folder", () => {
+    assert.match(examplesPart(lookup("grpc", "headers").out), /^grpc-service-headers: /m);
+    assert.match(lookup("example", "grpc-service-headers").out, /grpc:Listener/);
+});
+
+test("searches example code, so an API name finds its example", () => {
+    assert.match(examplesPart(lookup("join").out), /^strings: /m);
+});
+
+test("ignores stop words", () => {
+    assert.match(examplesPart(lookup("how", "to", "use", "records").out), /^records: /m);
+});
+
+test("leaves SKILL.md out of the results: it is already loaded", () => {
+    assert.doesNotMatch(lookup("program", "run").out, /SKILL\.md/);
+});
+
+test("a missing example with no local Ballerina and no network fails in one line", () => {
+    const { code, err } = lookupWith({ BAL_LOOKUP_HOME: join(skillDir, "missing"), BAL_LOOKUP_REPO: "http://127.0.0.1:9/x" }, "example", "records");
+    assert.equal(code, 1);
+    assert.equal(err.trim().split("\n").length, 1);
 });

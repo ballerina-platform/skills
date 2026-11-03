@@ -1,6 +1,6 @@
 # Troubleshooting — Index
 
-Use this table when searching the skill for the error's words (`scripts/lookup.mjs`) found nothing. **Read only the topic file matching the symptom — do not preload all troubleshooting files.**
+Use this table when searching the skill for the error's words (`../scripts/lookup.mjs`) found nothing. **Read only the topic file matching the symptom — do not preload all troubleshooting files.**
 
 ## Symptom → file
 

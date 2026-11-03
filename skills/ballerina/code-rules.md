@@ -40,7 +40,7 @@ Required rules for their domain, kept out of this file so you load only what app
 ## Identifiers
 
 - Names must be descriptive. Single letters and bare abbreviations (`x`, `res`, `tmp`) are not acceptable; **two-word camelCase** is the norm for variables, parameters and record fields (e.g., `userName`, `baseUrl`, `responseBody`).
-- Exception: a record whose fields bind to external payload/JSON keys (e.g. via `cloneWithType()`) must use the **exact source key names** — even if that means single-word or PascalCase (e.g. `Name`, `CreatedDate`). The wire contract wins over the naming convention here. A key that is a Ballerina keyword is written as a quoted identifier, e.g. `string 'table;`; the JSON key `table` still binds.
+- Exception: a record whose fields bind to external payload/JSON keys (e.g. via `cloneWithType()`) must use the **exact source key names** — even if that means single-word or PascalCase (e.g. `Name`, `CreatedDate`). The wire contract wins over the naming convention here. A key that is a Ballerina keyword is written as a quoted identifier, e.g. `string 'table;`; the JSON key `table` still binds. The same goes for any name that is a keyword, such as the langlib function `string:'join`.
 
 ## Function Calls
 

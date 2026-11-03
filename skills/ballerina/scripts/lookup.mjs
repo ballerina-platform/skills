@@ -20,29 +20,52 @@
 // node lookup.mjs example <slug> [--explain]  print one example's code (and its explanation)
 
 import { spawnSync } from "node:child_process";
-import { existsSync, readdirSync, readFileSync } from "node:fs";
-import { dirname, join, relative, sep } from "node:path";
+import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { basename, dirname, join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const SKILL_DIR = dirname(dirname(fileURLToPath(import.meta.url)));
 const LIMIT = 10;
-const BBE_REPO = "https://raw.githubusercontent.com/ballerina-platform/ballerina-distribution";
+const BBE_REPO = process.env.BAL_LOOKUP_REPO ?? "https://github.com/ballerina-platform/ballerina-distribution";
+const RAW_REPO = BBE_REPO.replace("https://github.com/", "https://raw.githubusercontent.com/");
+const HOME_CACHE = join(tmpdir(), "ballerina-lookup-home.json");
+const HOME_CACHE_MS = 10 * 60 * 1000;
+const STOP_WORDS = new Set(["a", "an", "and", "are", "as", "at", "be", "by", "can", "do", "does", "for", "from", "how",
+    "i", "in", "into", "is", "it", "my", "of", "on", "or", "the", "to", "use", "using", "what", "when", "where", "which",
+    "with", "you"]);
+
+function hasExamples(home) {
+    return Boolean(home) && existsSync(join(home, "examples"));
+}
 
 function balHome() {
-    if (process.env.BAL_LOOKUP_HOME) {
-        return process.env.BAL_LOOKUP_HOME;
+    if (process.env.BAL_LOOKUP_HOME !== undefined) {
+        return hasExamples(process.env.BAL_LOOKUP_HOME) ? process.env.BAL_LOOKUP_HOME : undefined;
+    }
+    try {
+        const cached = JSON.parse(readFileSync(HOME_CACHE, "utf8"));
+        if (Date.now() - cached.at < HOME_CACHE_MS && hasExamples(cached.home)) {
+            return cached.home;
+        }
+    } catch {
+        // No usable cache; ask bal below.
     }
     const result = spawnSync("bal", ["home"], { encoding: "utf8", shell: process.platform === "win32", timeout: 20000 });
     const home = (result.stdout ?? "").trim().split(/\r?\n/).pop();
-    return home && existsSync(join(home, "examples")) ? home : undefined;
+    if (!hasExamples(home)) {
+        return undefined;
+    }
+    try {
+        writeFileSync(HOME_CACHE, JSON.stringify({ home, at: Date.now() }));
+    } catch {
+        // The cache only saves a bal start next time.
+    }
+    return home;
 }
 
 function versionOf(home) {
     return home?.match(/ballerina-(\d+\.\d+\.\d+)/)?.[1];
-}
-
-function fileBase(slug) {
-    return slug.replaceAll("-", "_");
 }
 
 function scorer(words) {
@@ -70,6 +93,9 @@ function searchSkill(words) {
     const best = new Map();
     for (const file of markdownFiles(SKILL_DIR)) {
         const name = relative(SKILL_DIR, file).split(sep).join("/");
+        if (name === "SKILL.md") {
+            continue;
+        }
         let heading = "(top)";
         readFileSync(file, "utf8").split(/\r?\n/).forEach((line, index) => {
             if (/^#+ /.test(line)) {
@@ -86,34 +112,42 @@ function searchSkill(words) {
     return ranked([...best.values()]);
 }
 
+function filesOf(dir, extension) {
+    try {
+        return readdirSync(dir).filter((name) => name.endsWith(extension)).sort();
+    } catch {
+        return [];
+    }
+}
+
+function withoutDirectives(markdown) {
+    return markdown.split(/\r?\n/).filter((line) => !line.startsWith(":::")).join("\n");
+}
+
 function readExample(home, slug) {
     const dir = join(home, "examples", slug);
-    const read = (extension) => {
-        try {
-            return readFileSync(join(dir, `${fileBase(slug)}.${extension}`), "utf8");
-        } catch {
-            return "";
-        }
-    };
-    const meta = read("metatags");
+    const read = (name) => readFileSync(join(dir, name), "utf8");
+    const metaFile = filesOf(dir, ".metatags")[0];
+    const meta = read(metaFile);
     const description = (meta.match(/^description: (.*)$/m)?.[1] ?? "")
         .replace(/^This (BBE|example) (demonstrates|shows|is on) (how to )?/, "");
-    const body = read("md").split(/\r?\n/).filter((line) => !line.startsWith(":::")).join(" ");
-    return { slug, description, meta: `${slug} ${meta}`, body };
+    const notes = filesOf(dir, ".md").map((name) => withoutDirectives(read(name))).join("\n");
+    const code = filesOf(dir, ".bal").map((name) => read(name)).join("\n");
+    return { description, meta: `${slug} ${meta}`, notes, code };
 }
 
 function searchLocalExamples(home, words) {
     const score = scorer(words);
     const hits = [];
     for (const slug of readdirSync(join(home, "examples"))) {
-        if (!existsSync(join(home, "examples", slug, `${fileBase(slug)}.bal`))) {
+        const dir = join(home, "examples", slug);
+        if (filesOf(dir, ".metatags").length === 0 || filesOf(dir, ".bal").length === 0) {
             continue;
         }
         const example = readExample(home, slug);
         const meta = score(example.meta);
-        const body = score(example.body);
-        const matched = Math.max(meta.matched, body.matched);
-        if (matched >= meta.need) {
+        const body = score(`${example.notes}\n${example.code}`);
+        if (Math.max(meta.matched, body.matched) >= meta.need) {
             hits.push({ score: 2 * meta.score + body.score, line: `${slug}: ${clip(example.description, 100)}` });
         }
     }
@@ -122,7 +156,7 @@ function searchLocalExamples(home, words) {
 
 async function searchRemoteExamples(words) {
     const score = scorer(words);
-    const response = await fetch(`${BBE_REPO}/master/examples/index.json`);
+    const response = await fetch(`${RAW_REPO}/master/examples/index.json`);
     const groups = await response.json();
     const hits = groups.flatMap((group) => group.samples ?? []).flatMap((sample) => {
         const result = score(`${sample.url} ${sample.name}`);
@@ -139,28 +173,49 @@ function clip(text, length) {
     return text.length > length ? `${text.slice(0, length)}...` : text;
 }
 
+function printCode(files) {
+    const labelled = files.length > 1;
+    for (const { name, text } of files) {
+        process.stdout.write(labelled ? `// ${name}\n${text}\n` : text);
+    }
+}
+
+async function remoteFiles(slug, ref) {
+    const listing = await fetch(`${BBE_REPO.replace("https://github.com/", "https://api.github.com/repos/")}/contents/examples/${slug}?ref=${ref}`);
+    if (!listing.ok) {
+        return [];
+    }
+    const names = (await listing.json()).map((entry) => entry.name);
+    return Promise.all(names.filter((name) => /\.(bal|md)$/.test(name)).sort().map(async (name) =>
+        ({ name, text: await (await fetch(`${RAW_REPO}/${ref}/examples/${slug}/${name}`)).text() })));
+}
+
 async function printExample(slug, explain) {
     const home = balHome();
-    const base = fileBase(slug);
-    if (home && existsSync(join(home, "examples", slug, `${base}.bal`))) {
-        process.stdout.write(readFileSync(join(home, "examples", slug, `${base}.bal`), "utf8"));
-        if (explain) {
-            process.stdout.write(`\n${readExample(home, slug).body}\n`);
+    const dir = home ? join(home, "examples", slug) : undefined;
+    let files;
+    if (dir && filesOf(dir, ".bal").length > 0) {
+        files = [...filesOf(dir, ".bal"), ...filesOf(dir, ".md")].map((name) => ({ name, text: readFileSync(join(dir, name), "utf8") }));
+    } else {
+        const version = versionOf(home);
+        try {
+            files = await remoteFiles(slug, version ? `v${version}` : "master");
+        } catch {
+            console.error(`No local example '${slug}' and no network. Search with: node lookup.mjs <words>`);
+            process.exitCode = 1;
+            return;
         }
-        return;
     }
-    const version = versionOf(home);
-    const url = `${BBE_REPO}/${version ? `v${version}` : "master"}/examples/${slug}/${base}`;
-    const code = await fetch(`${url}.bal`);
-    if (!code.ok) {
+    const code = files.filter((file) => file.name.endsWith(".bal"));
+    if (code.length === 0) {
         console.error(`No example '${slug}'. Search with: node lookup.mjs <words>`);
         process.exitCode = 1;
         return;
     }
-    process.stdout.write(await code.text());
+    printCode(code);
     if (explain) {
-        const notes = await fetch(`${url}.md`);
-        process.stdout.write(`\n${(await notes.text()).split(/\r?\n/).filter((line) => !line.startsWith(":::")).join("\n")}\n`);
+        const notes = files.filter((file) => file.name.endsWith(".md")).map((file) => withoutDirectives(file.text));
+        process.stdout.write(`\n${notes.join("\n")}\n`);
     }
 }
 
@@ -171,10 +226,10 @@ async function main(args) {
             process.exitCode = 2;
             return;
         }
-        await printExample(args[1], args.includes("--explain"));
+        await printExample(basename(args[1]), args.includes("--explain"));
         return;
     }
-    const words = args.join(" ").toLowerCase().split(/\s+/).filter((word) => word.length > 1);
+    const words = args.join(" ").toLowerCase().split(/\s+/).filter((word) => word.length > 1 && !STOP_WORDS.has(word));
     if (words.length === 0) {
         console.error("Usage: node lookup.mjs <words...> | node lookup.mjs example <slug> [--explain]");
         process.exitCode = 2;

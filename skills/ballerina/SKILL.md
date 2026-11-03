@@ -51,8 +51,8 @@ When the program needs a broker, database, or other server, see [rules/integrati
 Before writing a construct you have not used in this task and these rules do not show (XML namespaces, regular expressions, query expressions, transactions, streams, a library's listener), or when an error message does not tell you the fix, search:
 
 ```bash
-node ${CLAUDE_SKILL_DIR}/scripts/lookup.mjs <words>          # matching sections of this skill, and matching examples
-node ${CLAUDE_SKILL_DIR}/scripts/lookup.mjs example <slug>   # print one example's code (add --explain for its notes)
+node "${CLAUDE_SKILL_DIR}/scripts/lookup.mjs" <words>          # matching sections of this skill, and matching examples
+node "${CLAUDE_SKILL_DIR}/scripts/lookup.mjs" example <slug>   # print one example's code (add --explain for its notes)
 ```
 
 `${CLAUDE_SKILL_DIR}` is the folder holding this file. For a skill match, read about 40 lines from its `file:line`. The examples are Ballerina by Example, shipped with the installed Ballerina under `<bal home>/examples/` (`bal home` prints the path); without Node, search there and in this skill's folder with your own search tool. For a `bal` command's options, run `bal <command> --help`.

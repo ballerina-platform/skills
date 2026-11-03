@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -38,6 +38,10 @@ export function loadState(sessionId) {
     } catch {
         return { skill: false, rules: false, nudged: false, reminders: 0, rulesReminded: false };
     }
+}
+
+export function clearState(sessionId) {
+    rmSync(statePath(sessionId), { force: true });
 }
 
 export function saveState(sessionId, state) {
