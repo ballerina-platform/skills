@@ -71,7 +71,7 @@ Plugins enforcing common rules:
 | ------------------- | -------------------------------------------------------------------------- |
 | `ballerina/http`    | Service and resource method signatures, payload binding shapes             |
 | `ballerina/graphql` | Schema definitions, resolver signatures, union/interface usage             |
-| `ballerina/sql`     | SQL query syntax (on supported versions)                                   |
+| `ballerina/sql`     | Constant values in connection-pool settings and SQL parameter types        |
 | `ballerina/persist` | Entity definitions and relations                                           |
 | `ballerinax/kafka`  | Listener configurations and consumer signatures                            |
 

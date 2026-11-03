@@ -126,7 +126,7 @@ graalvmBuildOptions = "--no-fallback"     # optional native-image flags
 
 | Error / symptom                                | Cause                                                       | Fix                                                                                                  |
 | ---------------------------------------------- | ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| `native-image` command not found               | GraalVM not installed or not on PATH                        | Install GraalVM, set `GRAALVM_HOME`, and run `gu install native-image`                               |
+| `native-image` command not found               | GraalVM not installed or not on PATH                        | Install a GraalVM JDK for your distribution's Java version (it includes `native-image`) and set `GRAALVM_HOME` |
 | Reflection error at runtime                    | A reflectively-accessed class wasn't registered             | Add a `reflect-config.json` under `resources/META-INF/native-image/`                                 |
 | Build fails with "unsupported feature"         | A library uses a JVM feature GraalVM doesn't support        | Confirm GraalVM support for the library; some `ballerinax/*` connectors may not be GraalVM-compatible |
 | Native image crashes at runtime                | Runtime behaviour differs from JVM                          | Reproduce in JVM mode first; if JVM works, file a GraalVM compatibility issue                        |

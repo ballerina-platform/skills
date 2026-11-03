@@ -96,26 +96,17 @@ Signs of exhaustion:
 
 Lower `minIdleConnections` when traffic is bursty or when the database connection limit is shared across multiple services — that way idle connections are released back to the DB during quiet periods.
 
-## Runtime thread pool
+## Runtime threads
 
-Ballerina's scheduler uses a fixed-size thread pool of `CPU cores × 2` by default. Tune via:
+Since 2201.11 each strand runs on a Java virtual thread, so there is no scheduler thread pool to size: `BALLERINA_MAX_POOL_SIZE` no longer has an effect. A blocking call (a JDBC driver, a third-party Java library) parks its own virtual thread instead of starving a shared pool.
 
-```bash
-export BALLERINA_MAX_POOL_SIZE=16
-bal run .
-```
+Diagnosing a hang:
 
-Raise it only if you have **blocking** calls tying up scheduler workers — most commonly legacy JDBC drivers or third-party Java libraries. Standard Ballerina I/O (HTTP, SQL via Ballerina libraries) is non-blocking and doesn't usually need a larger pool.
+1. Strand dump (`kill -SIGTRAP <PID>`, see [runtime.md](runtime.md)): the top frame in your code shows where each strand is waiting.
+2. JVM thread dump that includes virtual threads: `jcmd <PID> Thread.dump_to_file -format=json <file>` (`jstack` does not list them).
+3. Symptoms: requests are accepted but never answered while the process is alive; latency grows with concurrent load.
 
-Diagnosing thread starvation:
-
-1. Strand dump (`kill -SIGTRAP <PID>`, see [runtime.md](runtime.md)) — many strands stuck in `BLOCKED` suggests workers are tied up.
-2. JVM thread dump (`jstack <PID>` or `kill -3 <PID>`) — look for threads named `ballerina-scheduler-*`. If they're all `BLOCKED`/`WAITING` inside a blocking call, the pool is starved.
-3. Symptoms: new HTTP requests stop being accepted while the process is still alive; latency grows linearly with concurrent load; strand dump shows `RUNNABLE` strands making no progress.
-
-If you confirm starvation, raise `BALLERINA_MAX_POOL_SIZE` and/or move the blocking call into a dedicated `worker` so it doesn't steal a main scheduler slot.
-
-> This is separate from the SQL pool (`maxOpenConnections`) and HTTP pool (`maxActiveConnections`) — those govern connections to external services, not Ballerina's scheduler.
+> This is separate from the SQL pool (`maxOpenConnections`) and HTTP pool (`maxActiveConnections`) — those govern connections to external services, not Ballerina's strands.
 
 ## Concurrency and isolation
 
@@ -144,7 +135,6 @@ isolated service /api on new http:Listener(9090) {
 
 Symptoms that *look* like races but usually aren't:
 
-- `{ballerina}IllegalStateException` — using a closed client/resource, not a data race
 - Unexpected behaviour under load — usually pool exhaustion or a logic bug, not concurrency
 
 ## Memory

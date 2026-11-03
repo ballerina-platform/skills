@@ -53,12 +53,6 @@ Find conflicts:
 bal build --dump-graph 2>&1 | grep -A 5 "conflict"
 ```
 
-A typical error:
-
-```text
-error: dependency conflict: 'ballerina/http' version '2.9.0' and '2.11.0' are both required
-```
-
 Options to resolve:
 
 1. Pin the version explicitly in `Ballerina.toml`:

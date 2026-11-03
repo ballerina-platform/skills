@@ -8,7 +8,7 @@ HTTP trace logs capture full requests and responses (headers, body, timing). The
 
 ```bash
 # Single file
-bal run my_program.bal -Cballerina.http.traceLogConsole=true
+bal run my_program.bal -- -Cballerina.http.traceLogConsole=true
 
 # Package project (from the package root)
 bal run -- -Cballerina.http.traceLogConsole=true
@@ -183,7 +183,7 @@ The fields you'll most often adjust:
 
 ```ballerina
 http:Client cl = check new ("http://api.example.com", {
-    timeout: 30,                       // request timeout (seconds; default 60)
+    timeout: 30,                       // request timeout (seconds; default 30)
     followRedirects: {
         enabled: true,
         maxCount: 5

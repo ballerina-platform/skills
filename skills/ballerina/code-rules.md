@@ -59,7 +59,7 @@ These are not optional extras; they are the rules for their domain, kept out of 
 
 - Each `.bal` file must have its own import statements.
 - Import only packages your code actually references — `bal build` errors on unused imports. Don't pre-import a connector's dependency module (e.g. `ballerina/sql` behind a database client) unless your code names a type from it. Exception: the SQL `.driver` packages (below) are deliberate side-effect-only imports — keep them even though they look unused.
-- Do not import auto-imported langlibs: `lang.string`, `lang.boolean`, `lang.float`, `lang.decimal`, `lang.int`, `lang.map`.
+- Predeclared langlibs need no import (`string:`, `int:`, `float:`, `decimal:`, `boolean:`, `map:`, `xml:`, `error:`); `lang.array`, `lang.value`, `lang.regexp` and `lang.runtime` do (`import ballerina/lang.array;`).
 - Packages with dots in names use aliases: `import org/package.one as one;`
 - Submodules in `generated/<moduleName>/`: import as `import <packageName>.<moduleName>;` — the import should contain only the package name and submodule name, no path components.
 - A SQL client needs its `.driver` package imported alongside it as a side-effect import — see [rules/sql.md](rules/sql.md).

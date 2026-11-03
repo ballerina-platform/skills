@@ -47,18 +47,17 @@ Ballerina stack traces may interleave Ballerina frames (`at myorg/mypackage:main
 
 ## Core runtime errors
 
-These have the `{ballerina}` prefix and originate from the runtime itself.
+The part in braces names the module that raised the error: `{ballerina}` is the runtime itself, `{ballerina/lang.array}` the array langlib, and so on. Errors from a library module are documented with that module's API.
 
-| Error type                          | Meaning                                                                                                                                                                                                                                       | Typical cause                                                |
-| ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
-| `{ballerina}TypeCastError`          | Runtime type cast failed                                                                                                                                                                                                                      | `<MyType>value` where the value is not actually `MyType`     |
-| `{ballerina}NullReferenceException` | A `()` value was used where a non-nil value was required. Not the same as a Java NPE — Ballerina's type system normally prevents this, so it appears mainly when a `()` slips past via an unsafe cast like `<string>nilValue`.               | Dereferencing nil via unsafe cast                            |
-| `{ballerina}NumberConversionError`  | A numeric conversion failed                                                                                                                                                                                                                   | `check int:fromString("abc")`                                |
-| `{ballerina}StackOverflow`          | Infinite recursion                                                                                                                                                                                                                            | Recursive function missing a base case                       |
-| `{ballerina}IllegalStateException`  | Operation on a closed or invalid resource                                                                                                                                                                                                     | Using a client or channel after `close()`                    |
-| `{ballerina}IndexOutOfRange`        | Array or tuple index out of bounds                                                                                                                                                                                                            | Reading past the end of an array or tuple                    |
-| `{ballerina}KeyNotFound`            | Missing map key                                                                                                                                                                                                                               | Member access on a key that isn't present in a `map`         |
-| `{ballerina}JSONOperationError`     | Invalid JSON access path                                                                                                                                                                                                                      | Reading a non-existent key or wrong type from a `json` value |
+| Error (2201.14)                          | Typical cause                                                        | Action                                                                                    |
+| ---------------------------------------- | -------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `{ballerina}TypeCastError`               | `<MyType>value` where the value is not a `MyType`, including `()`    | Replace `<T>val` with `if val is T { ... }` or `value:ensureType(val)`                   |
+| `{ballerina}DivisionByZero`              | Integer division or `%` by zero                                      | Check the divisor first                                                                   |
+| `{ballerina}StackOverflow`               | Recursive function missing a base case                               | Add the base case, or switch to an iterative form                                         |
+| `{ballerina}JSONOperationError`          | Field access on a `json` value that is not a mapping (`five.a`)      | Check the shape before drilling in, or convert to a record first                         |
+| `{ballerina/lang.int}NumberParsingError` | `int:fromString("abc")` (`float:`/`decimal:` have their own)         | Handle the `error` the function returns; validate input before converting                |
+| `{ballerina/lang.array}IndexOutOfRange`  | Reading past the end of an array or tuple                            | Guard with `if i < arr.length()`                                                          |
+| `{ballerina/lang.map}KeyNotFound`        | `m.get(k)`, or `json` field access, on a key that is not present     | Use `m.hasKey(k)` or member access `m[k]` (returns `()`); `j?.k` for optional `json` keys |
 
 ### Worked example — `TypeCastError`
 
@@ -69,19 +68,6 @@ error: {ballerina}TypeCastError {"message":"incompatible types: 'string' cannot 
 ```
 
 Look at `utils.bal:42` — it likely contains `<int>someValue` where `someValue` is sometimes a `string` at runtime. Trace where `someValue` is assigned and confirm the type holds on every path.
-
-### What to do, by error type
-
-| Error type               | Action                                                                                                              |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------- |
-| `TypeCastError`          | Replace `<T>val` with `if val is T { ... }` or `value:ensureType(val)`                                              |
-| `NullReferenceException` | Add nil checks; use `value:ensureType` or match against `()` before using                                           |
-| `NumberConversionError`  | Validate input before conversion; handle the `error` return from `int:fromString`, `float:fromString`, etc.         |
-| `StackOverflow`          | Audit recursive functions for base cases; switch to an iterative form if recursion isn't required                   |
-| `IllegalStateException`  | Track resource lifecycle — don't reuse clients/channels after `close()`                                             |
-| `IndexOutOfRange`        | Guard with `if i < arr.length()`; for safe extraction use `value:ensureType` on the result of optional access       |
-| `KeyNotFound`            | Use `map.hasKey(key)` first, or use optional access (`map[key]` returns `()` on `map<T?>` for missing keys)         |
-| `JSONOperationError`     | Use optional chaining (`j?.key`) and check shape before drilling into a nested `json`                               |
 
 If the stack trace shows no frames from your code — every frame is in the runtime — the panic is a runtime bug rather than misuse. File against `ballerina-platform/ballerina-lang` with a minimal reproducer.
 
@@ -107,39 +93,36 @@ kill -5 <PID>
 
 The dump goes to the program's **standard output**. If you want to capture it, run the program with `bal run . > out.log 2>&1`.
 
-A dump entry looks like this:
+Since 2201.11 each strand runs on a Java virtual thread. The dump lists every strand with its stack, grouped into isolated and non-isolated strands; it shows no state per strand. A 2201.14 dump:
 
 ```text
-Timestamp: 2024-03-15T10:30:00.000Z
-Total strand groups: 4, active: 2
+Ballerina Strand Dump [2026/11/03 17:24:34]
+Total Strand count               :  2
+Total Isolated Strand count      :  1
+Total Non Isolated Strand count  :  1
 
-Strand Group: [ID=1, state=RUNNABLE, strands=2]
-  Strand: [ID=1, name=main, state=RUNNABLE]
-    at myorg/mypackage:processRequest(service.bal:42)
-  Strand: [ID=2, state=WAITING FOR LOCK]
-    at myorg/mypackage:updateCounter(utils.bal:15)
+Isolated Strands:
+    Strand #32 "waiter" :
+        at       ballerina.lang&0046runtime.0.runtime.sleep(runtime.bal:86)
+                 myorg.mypackage.0.main.$lambda$_0(main.bal:13)
+
+Non Isolated Strands:
+    Strand #29 "main" :
+        at       ballerina.lang&0046runtime.0.runtime.sleep(runtime.bal:86)
+                 myorg.mypackage.0.main.holdLock(main.bal:7)
+                 myorg.mypackage.0.main.main(main.bal:15)
 ```
 
-Strand states that matter:
-
-| State                               | What it means                                                                                  |
-| ----------------------------------- | ---------------------------------------------------------------------------------------------- |
-| `WAITING FOR LOCK`                  | Trying to enter a `lock` block — multiple strands here may indicate a deadlock                 |
-| `BLOCKED ON WORKER MESSAGE SEND`    | Waiting for a peer worker to receive (`->`)                                                    |
-| `BLOCKED ON WORKER MESSAGE RECEIVE` | Waiting for a peer worker to send (`<-`)                                                       |
-| `BLOCKED`                           | Blocked on sleep or an external call (HTTP, DB, etc.)                                          |
-| `RUNNABLE`                          | Running or ready to run                                                                        |
-| `DONE`                              | Finished                                                                                       |
+The first frame in your own code (`main.bal:7` above) is where that strand is waiting.
 
 ### Suspecting a deadlock
 
-1. Take the dump. Count strands stuck in `WAITING FOR LOCK`.
-2. Identify which `lock` blocks they're contending on, using the file:line in each frame.
-3. Common fixes: shrink the scope of `lock` blocks, enforce a consistent lock acquisition order across call sites, or eliminate shared mutable state.
-4. If strands are stuck on `BLOCKED ON WORKER MESSAGE SEND/RECEIVE`, verify worker send/receive pairs balance — every `->` needs a matching `<-`.
+1. Take two dumps a few seconds apart. Strands whose stacks do not change are stuck.
+2. Several stuck strands at the same `lock` block, or at worker sends (`->`) and receives (`<-`) that never pair up, show the contention. Use the file:line in each frame.
+3. Common fixes: shrink the scope of `lock` blocks, take locks in the same order at every call site, or remove shared mutable state. Every worker `->` needs a matching `<-`.
 
 ### Program hangs without deadlock
 
-1. Look for `BLOCKED` strands. They're typically waiting on an external call.
+1. Look for strands whose first frame in your code is a client call (HTTP, database, broker): they are waiting on that dependency.
 2. Check whether the downstream service is responding (network, DNS, listener up).
 3. Long-term fix: set timeouts on every external client so a slow dependency cannot stall a strand indefinitely.

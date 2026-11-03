@@ -67,7 +67,7 @@ resource function get user(graphql:Context ctx) returns User|error {
 }
 ```
 
-The classic pitfall: calling `ctx.get("key")` when nothing set it produces a `{ballerina}KeyNotFound` panic. Make sure an interceptor (or earlier resolver) runs `ctx.set("key", value)` before any resolver that needs the key.
+The classic pitfall: calling `ctx.get("key")` when nothing set it returns a `graphql:Error` ("Attribute with the key ... not found in the context"). Make sure an interceptor (or earlier resolver) runs `ctx.set("key", value)` before any resolver that needs the key.
 
 ## DataLoader issues
 

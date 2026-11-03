@@ -52,8 +52,9 @@ string jsonStr = person.toJsonString();
 json raw = {port: 8080};
 Config config = check raw.cloneWithType();
 
-// Validate field type (ensureType)
-json[] subjects = check student.subjects.ensureType();
+// Validate a value's type (ensureType)
+json subjectsValue = check student.subjects;
+json[] subjects = check subjectsValue.ensureType();
 
 // Clone a value
 int[] copy = original.clone();
@@ -187,15 +188,16 @@ string:RegExp pattern = re `[0-9]+`;
 string:RegExp pattern = check regexp:fromString("[0-9]+");
 
 // Find
-regexp:Span? match = pattern.find("Hello123");
+regexp:Span? firstMatch = pattern.find("Hello123");
 regexp:Span[] all = re `[0-9]+`.findAll("a1b2c3");
 
-// Capture groups
+// Capture groups: groups[0] is the whole match; later groups are Span? (a group may not take part)
 regexp:Groups? groups = re `([a-z]+)([0-9]+)`.findGroups("abc123");
 if groups is regexp:Groups {
-    string full = groups[0].substring();   // "abc123"
-    string letters = groups[1].substring(); // "abc"
-    string numbers = groups[2].substring(); // "123"
+    regexp:Span? letters = groups[1];
+    if letters is regexp:Span {
+        string text = letters.substring(); // "abc"
+    }
 }
 
 // Validate full match
