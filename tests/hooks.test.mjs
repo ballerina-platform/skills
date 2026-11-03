@@ -18,7 +18,7 @@
 
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdtempSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { beforeEach, test } from "node:test";
@@ -117,4 +117,13 @@ test("session end removes the session state", () => {
     assert.ok(existsSync(join(stateDir, "ballerina-skill-s1.json")));
     runHook("session-end.mjs", { session_id: "s1" });
     assert.ok(!existsSync(join(stateDir, "ballerina-skill-s1.json")));
+});
+
+test("a link planted at the state path is never followed", { skip: process.platform === "win32" }, () => {
+    const victim = join(stateDir, "victim.txt");
+    writeFileSync(victim, "keep");
+    symlinkSync(victim, join(stateDir, "ballerina-skill-s1.json"));
+    runHook("mark.mjs", { session_id: "s1", tool_name: "Skill", tool_input: { skill: "ballerina" } });
+    runHook("session-end.mjs", { session_id: "s1" });
+    assert.equal(readFileSync(victim, "utf8"), "keep");
 });

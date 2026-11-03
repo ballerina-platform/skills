@@ -16,9 +16,11 @@
  * under the License.
  */
 
-import { readFileSync, rmSync, writeFileSync } from "node:fs";
+import { lstatSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+
+const FRESH_STATE = { skill: false, rules: false, nudged: false, reminders: 0, rulesReminded: false };
 
 export function readInput() {
     try {
@@ -32,21 +34,39 @@ function statePath(sessionId) {
     return join(tmpdir(), `ballerina-skill-${String(sessionId).replace(/[^\w-]/g, "")}.json`);
 }
 
-export function loadState(sessionId) {
+// The temp dir can be shared (Linux /tmp): trust only a regular file this user owns, never a planted link.
+function ownFile(path) {
     try {
-        return JSON.parse(readFileSync(statePath(sessionId), "utf8"));
+        const info = lstatSync(path);
+        return info.isFile() && (process.getuid === undefined || info.uid === process.getuid()) ? "own" : "foreign";
     } catch {
-        return { skill: false, rules: false, nudged: false, reminders: 0, rulesReminded: false };
+        return "absent";
+    }
+}
+
+export function loadState(sessionId) {
+    const path = statePath(sessionId);
+    try {
+        return ownFile(path) === "own" ? { ...FRESH_STATE, ...JSON.parse(readFileSync(path, "utf8")) } : { ...FRESH_STATE };
+    } catch {
+        return { ...FRESH_STATE };
     }
 }
 
 export function clearState(sessionId) {
-    rmSync(statePath(sessionId), { force: true });
+    const path = statePath(sessionId);
+    if (ownFile(path) === "own") {
+        rmSync(path, { force: true });
+    }
 }
 
 export function saveState(sessionId, state) {
+    const path = statePath(sessionId);
+    const owner = ownFile(path);
     try {
-        writeFileSync(statePath(sessionId), JSON.stringify(state));
+        if (owner !== "foreign") {
+            writeFileSync(path, JSON.stringify(state), { mode: 0o600, flag: owner === "own" ? "w" : "wx" });
+        }
     } catch {
         // A hook must never block the agent; losing the state only means an extra reminder.
     }
