@@ -1,5 +1,7 @@
 # SQL / Database Issues
 
+**Contents:** Connection failures · Parameter binding — compiles clean, fails at execution · Query and result errors · Transactions
+
 ## Connection failures
 
 The most common SQL problem is failing to connect:

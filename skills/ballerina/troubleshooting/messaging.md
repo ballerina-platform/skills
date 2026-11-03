@@ -1,5 +1,7 @@
 # Messaging Connectors — Kafka, RabbitMQ, NATS, JMS
 
+**Contents:** Kafka · RabbitMQ · NATS · JMS
+
 Messaging connectors share recurring failure modes: broker reachability, auth, destination existence, and consumer/producer config mismatches.
 
 ## Kafka

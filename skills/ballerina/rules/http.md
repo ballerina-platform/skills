@@ -16,7 +16,7 @@ Use `http:NotImplemented` as a placeholder return type initially, then implement
 
 ## Product APIs
 
-Before writing an `http:Client` for a product's API, look for its connector (SKILL.md Step 2) and use it when there is one: it already handles the product's auth and protocol details. For example, `sap:Client` from `ballerinax/sap` (S/4HANA, SAP Gateway OData) fetches the CSRF token, keeps the session cookie the token is bound to, and fetches a new token when SAP rejects it, so no hand-written CSRF handling is needed. Point it at the OData service root (e.g. `.../sap/opu/odata/sap/<SERVICE>`). Each `sap:Client` holds its own token and session, so splitting reads (with `retryConfig`) and writes (without) across two clients is safe.
+Before writing an `http:Client` for a product's API, look for its connector (SKILL.md Step 2) and use it when there is one: it already handles the product's auth and protocol details. For SAP, see [sap.md](sap.md).
 
 ## Client resilience
 

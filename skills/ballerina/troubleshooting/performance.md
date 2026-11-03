@@ -1,5 +1,7 @@
 # Performance and Tuning
 
+**Contents:** What kind of issue is it? · HTTP connection pool · SQL connection pool · Runtime threads · Concurrency and isolation · Memory · Observability
+
 Performance issues need measurement, not log-reading. Identify the *shape* of the problem first, then tune the right knob.
 
 ## What kind of issue is it?

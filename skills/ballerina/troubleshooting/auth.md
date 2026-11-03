@@ -1,5 +1,7 @@
 # Security and Authentication
 
+**Contents:** TLS / SSL · OAuth2 / JWT / token issues
+
 Covers TLS/SSL, OAuth2, and JWT in Ballerina HTTP services and clients.
 
 ## TLS / SSL

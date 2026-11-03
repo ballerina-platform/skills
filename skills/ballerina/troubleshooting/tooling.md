@@ -1,5 +1,7 @@
 # Tooling Issues
 
+**Contents:** `bal` CLI · OpenAPI tool · gRPC tool · Test framework · `bal persist` · Formatter
+
 Covers `bal` CLI itself, OpenAPI/gRPC generators, the test framework, `bal persist`, and the formatter.
 
 ## `bal` CLI

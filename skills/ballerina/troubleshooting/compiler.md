@@ -1,5 +1,7 @@
 # Compiler and Language Issues
 
+**Contents:** Reading a compiler error · Common compile-time errors · Compiler crashes · Compiler plugin diagnostics · Java exceptions during compilation
+
 Compilation problems appear before the program starts and are deterministic — the same input always produces the same diagnostic.
 
 ## Reading a compiler error

@@ -1,5 +1,7 @@
 # Runtime Issues
 
+**Contents:** Errors vs panics · Reading an error or panic · Core runtime errors · Strand dumps — diagnosing hangs and deadlocks
+
 Runtime problems surface after compilation succeeds, while the program is executing. This file covers the **core runtime** — for connector-specific runtime failures, jump to the matching file (`http.md`, `sql.md`, …).
 
 ## Errors vs panics

@@ -1,5 +1,7 @@
 # Package and Dependency Issues
 
+**Contents:** Resolution failures · Version conflicts · Network, firewall, and proxy · Offline builds · Private packages
+
 Covers `bal pull` failures, version conflicts, proxy/firewall handling, offline builds, and private packages.
 
 ## Resolution failures

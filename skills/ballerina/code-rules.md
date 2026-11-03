@@ -4,11 +4,12 @@ Everything in this file applies to **all** Ballerina code. Read it in full.
 
 ## Domain rules — read the ones your task needs
 
-These are not optional extras; they are the rules for their domain, kept out of this file so you only load what applies. Read the matching file **before** writing that part of the code.
+Required rules for their domain, kept out of this file so you load only what applies. Read the matching file **before** writing that part of the code.
 
 | Task involves | Read |
 | ------------- | ---- |
 | An HTTP service, or calling an HTTP API | [rules/http.md](rules/http.md) |
+| An SAP system's OData or HTTP API (S/4HANA, SAP Gateway) | [rules/sap.md](rules/sap.md) |
 | A consumer for a broker or queue (Kafka, RabbitMQ, NATS, JMS, …), or any listener that receives events — change-data-capture included | [rules/messaging.md](rules/messaging.md) |
 | A database client, or SQL queries | [rules/sql.md](rules/sql.md) |
 | A GraphQL service | write the schema first if the user has not given one, then name Ballerina records after its types |
@@ -23,15 +24,14 @@ These are not optional extras; they are the rules for their domain, kept out of 
   - Allowed types: `string`, `int`, `decimal`, `boolean` only.
   - Never assign hardcoded default values to configurables.
 - Initialize clients at module level, before any function or service declarations.
-- Declare listeners with the `listener` keyword (`listener foo:Listener lsn = new (config);`), not a `final` variable — `service ... on lsn` attachment requires it; a `final foo:Listener` fails to compile.
+- Declare listeners with the `listener` keyword (`listener foo:Listener lsn = new (config);`), not a `final` variable — `service ... on lsn` attachment requires it; a `final foo:Listener` fails to compile. Declare listeners and attach services statically at module level, never at runtime.
 - A package may contain **both** a `main` function and services, and the startup ordering has consequences — see [rules/workspace.md](rules/workspace.md).
 
 ## Data
 
-- Use records for all data structures. Never use `map<json>`, `map<anydata>`, or raw `json`.
+- Use records for all data structures. Never use or manipulate `map<json>`, `map<anydata>`, or raw `json`: define a record, convert to it (`cloneWithType()` or `fromJsonStringWithType()`), then use the record.
 - Prefer closed records (`record {| ... |}`) for data shapes you own. Use an open record only when tolerating extra/unknown fields is deliberate (e.g. a loosely-specified inbound payload).
 - To copy a record with one field changed: `let T {f: _, ...rest} = r in {...rest, f: v}` (a shallow copy; destructure `r.clone()` for a deep one).
-- Never access or manipulate a `json` variable directly. Define a record, convert json to it (`cloneWithType()` or `fromJsonStringWithType()`), then use the record.
 - If a return typedesc is marked `<>` in API docs, define a custom record for the expected data shape.
 - If a parameter type is `record {|anydata...;|}`, define or reuse an explicit named record — do not pass an anonymous literal.
 - If a return type is `record {|anydata...;|}`, decide the shape, declare a named record, and assign to it.
@@ -52,17 +52,15 @@ These are not optional extras; they are the rules for their domain, kept out of 
 ## Type Safety
 
 - Declare types explicitly in all variable declarations and `foreach` statements.
-- To narrow a union or optional type: assign to a separate typed variable first, then use it in the `if` condition.
-- Do not invoke methods on json access expressions — always use a separate statement.
+- To narrow a union or optional type, assign it to a separate typed variable first (see Data, above).
 
 ## Imports
 
 - Each `.bal` file must have its own import statements.
-- Import only packages your code actually references — `bal build` errors on unused imports. Don't pre-import a connector's dependency module (e.g. `ballerina/sql` behind a database client) unless your code names a type from it. Exception: the SQL `.driver` packages (below) are deliberate side-effect-only imports — keep them even though they look unused.
+- Import only packages your code actually references — `bal build` errors on unused imports. Don't pre-import a connector's dependency module (e.g. `ballerina/sql` behind a database client) unless your code names a type from it. Exception: the SQL `.driver` packages (below) are deliberate side-effect-only imports — keep them even though they look unused (see [rules/sql.md](rules/sql.md)).
 - Predeclared langlibs need no import (`string:`, `int:`, `float:`, `decimal:`, `boolean:`, `map:`, `xml:`, `error:`); `lang.array`, `lang.value`, `lang.regexp` and `lang.runtime` do (`import ballerina/lang.array;`).
 - Packages with dots in names use aliases: `import org/package.one as one;`
 - Submodules in `generated/<moduleName>/`: import as `import <packageName>.<moduleName>;` — the import should contain only the package name and submodule name, no path components.
-- A SQL client needs its `.driver` package imported alongside it as a side-effect import — see [rules/sql.md](rules/sql.md).
 - **Never hand-add a dependency to `Ballerina.toml`** — an `import` plus `bal build` resolves and downloads it from Central. `[[dependency]]` blocks are only for pinning a version or pointing at a local repository, and `[[platform.*.dependency]]` for Java JARs; see [troubleshooting/packages.md](troubleshooting/packages.md).
 - **Never hand-edit `Dependencies.toml`** — the build tool manages it. Deleting it to force a clean re-resolution, then rebuilding, is a valid troubleshooting step.
 
@@ -84,7 +82,6 @@ These are not optional extras; they are the rules for their domain, kept out of 
 ## Other Rules
 
 - Function parameters are immutable — assigning to one fails with *cannot assign a value to function argument*. Copy it into a local variable and modify that.
-- Declare listeners and attach services statically at module level; do not register or attach them at runtime.
 - Propagate errors with `check`, or handle them with a `do`/`on fail` block; never use `checkpanic` to silence an error return in real code.
 - When a comparison of codes or identifiers must ignore case, use `equalsIgnoreCaseAscii()` against each known value. Don't normalise with `toLowerAscii()`/`toUpperAscii()`: as of 2201.14 they also convert non-ASCII letters and follow the JVM locale, so a non-ASCII look-alike of a letter can match.
 - `//` is the only comment form — Ballerina has no `/* */` block comments (`invalid token '/*'`). `#` introduces documentation.

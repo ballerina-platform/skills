@@ -1,5 +1,7 @@
 # HTTP Issues
 
+**Contents:** Trace logs — the first thing to enable · Access logs — for production-safe summaries · HTTP client errors · HTTP listener / service errors · Client configuration reference
+
 `ballerina/http` is the most common source of runtime failures. The diagnostic tools here apply whether the program is acting as a client, a service, or both.
 
 ## Trace logs — the first thing to enable
