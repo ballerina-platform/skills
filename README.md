@@ -5,7 +5,7 @@ Agent skills and plugins for Ballerina developers — language-server code intel
 ## Prerequisites
 
 - Ballerina 2201.12.0 (Swan Lake Update 12) or later, with `bal` available on the `PATH`.
-- Node.js 18 or later, required by the bundled library-discovery MCP server.
+- Node.js 18 or later, required by the bundled library-discovery MCP server and the activation hooks.
 
 ## Installation
 
@@ -31,7 +31,7 @@ copilot plugin install ballerina@ballerina-skills
 
 In VS Code, add `ballerina-platform/skills` to the `chat.plugins.marketplaces` setting, then search `@agentPlugins ballerina` in the Extensions view and install it.
 
-This installs the language server (Copilot CLI), the `ballerina` skill, the library-discovery MCP server, the `library` agent, and the activation hooks.
+This installs the language server (Copilot CLI), the `ballerina` skill, the library-discovery MCP server, and the `library` agent. The activation hooks are Claude Code only.
 
 ### Other agents (Open Agent Skills CLI)
 
@@ -41,7 +41,7 @@ Install the skill for Codex, Cursor, Gemini CLI, and other agents:
 npx skills add ballerina-platform/skills
 ```
 
-Pass `--agent <name>` to target a specific agent. This channel installs the `ballerina` skill only; the language server, the library-discovery MCP server, and the activation hooks come with the Claude Code and GitHub Copilot plugins. On these agents, library discovery uses the `bal search` command.
+Pass `--agent <name>` to target a specific agent. This channel installs the `ballerina` skill only; the language server and the library-discovery MCP server come with the Claude Code and GitHub Copilot plugins, and the activation hooks with the Claude Code plugin. On these agents, library discovery uses the `bal search` command.
 
 ## Skills
 

@@ -1,0 +1,33 @@
+name: Hook and script tests
+
+on:
+  pull_request:
+    paths:
+      - "hooks/**"
+      - "skills/ballerina/scripts/**"
+      - "tests/**"
+      - ".github/workflows/scripts-test.yml"
+  push:
+    paths:
+      - "hooks/**"
+      - "skills/ballerina/scripts/**"
+      - "tests/**"
+      - ".github/workflows/scripts-test.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        node: [18, 22]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - run: node --test tests/hooks.test.mjs

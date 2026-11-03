@@ -1,27 +1,26 @@
 {
-  "description": "Silently inject ballerina skill reminder and track activation",
+  "description": "Remind the agent to load the ballerina skill and its code rules",
   "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          { "type": "command", "command": "node", "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/prompt-nudge.mjs"], "timeout": 5 }
+        ]
+      }
+    ],
     "PreToolUse": [
       {
-        "matcher": "Write|Edit|Bash",
+        "matcher": "Write|Edit|MultiEdit|Bash",
         "hooks": [
-          {
-            "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/bal-skill-remind.sh\"",
-            "timeout": 5
-          }
+          { "type": "command", "command": "node", "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/remind.mjs"], "timeout": 5 }
         ]
       }
     ],
     "PostToolUse": [
       {
-        "matcher": "Skill",
+        "matcher": "Skill|Read|Bash",
         "hooks": [
-          {
-            "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/bal-skill-mark.sh\"",
-            "timeout": 5
-          }
+          { "type": "command", "command": "node", "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/mark.mjs"], "timeout": 5 }
         ]
       }
     ]
