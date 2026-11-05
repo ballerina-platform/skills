@@ -21,13 +21,30 @@ import { loadState, readInput, saveState } from "./session.mjs";
 
 const MAX_SKILL_REMINDERS = 3;
 const BAL_COMMAND = /(^|[\s;&|(])bal\s+(new|build|run|test|add|pull|push|format|pack)\b/;
+const REDIRECT_TO_BAL = /(>>?|\btee(\s+-a)?)\s*[^\s<>]*\.bal\b/;
+// Agents also edit .bal files from Python or Node one-liners.
+const SCRIPT_WRITE = /\bopen\([^)]*,\s*["'][wa]|\.write_text\(|writeFileSync\(/;
+
+function bashWritesBal(command) {
+    // Quoted text is kept as words, but its separators and redirects no longer split or redirect anything.
+    const unquoted = command.replace(/'[^']*'|"[^"]*"/g, (quoted) => quoted.slice(1, -1).replace(/[;&|<>\n]/g, " "));
+    const writesSegment = unquoted.split(/&&|\|\||[;|\n]/).some((segment) => {
+        const words = segment.trim().split(/\s+/);
+        const inPlaceEditor = words.includes("sed") || words.includes("perl");
+        if (inPlaceEditor && words.some((word) => /^-[a-zA-Z]*i|^--in-place/.test(word))) {
+            return words.some((word) => word.endsWith(".bal"));
+        }
+        return REDIRECT_TO_BAL.test(segment);
+    });
+    return writesSegment || (/\.bal\b/.test(command) && SCRIPT_WRITE.test(command));
+}
 
 const input = readInput();
 const toolInput = input.tool_input ?? {};
 const filePath = String(toolInput.file_path ?? "");
 const command = String(toolInput.command ?? "");
 const writesBal = ["Write", "Edit", "MultiEdit"].includes(input.tool_name) ? filePath.endsWith(".bal")
-    : input.tool_name === "Bash" && /\.bal\b/.test(command) && /(>|\btee\b)/.test(command);
+    : input.tool_name === "Bash" && bashWritesBal(command);
 const touchesBallerina = writesBal || (input.tool_name === "Bash" && (BAL_COMMAND.test(command) || /Ballerina\.toml/.test(command)));
 
 if (input.session_id && touchesBallerina) {

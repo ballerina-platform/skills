@@ -107,6 +107,26 @@ test("reading the code rules through Bash counts", () => {
     assert.equal(runHook("remind.mjs", { session_id: "s1", tool_name: "Write", tool_input: { file_path: "main.bal" } }), "");
 });
 
+test("the code rules reminder waits for a real .bal write, not a read or a build", () => {
+    runHook("mark.mjs", { session_id: "s1", tool_name: "Skill", tool_input: { skill: "ballerina:ballerina" } });
+    for (const command of ["cat main.bal && bal build 2>&1 | head -40", "cat main.bal > /tmp/copy.txt", "sed -n '1,9p' main.bal",
+        "grep -n \"dbClient->execute\" db.bal", "sed -i '' 's/name = \"work\"/name = \"orders\"/' Ballerina.toml && cat main.bal"]) {
+        assert.equal(reminderOf(runHook("remind.mjs", { session_id: "s1", tool_name: "Bash", tool_input: { command } })), undefined, command);
+    }
+});
+
+test("redirects, tee, sed -i and script writes into a .bal file count as writes", () => {
+    const commands = ["cat <<'EOF' > src/main.bal\nimport ballerina/io;\nEOF", "echo x >> \"types.bal\"", "tee -a util.bal", "sed -i '' 's/a/b/' main.bal",
+        "sed -i '' 's/x;$/y;/; s/c/d/' db.bal", "sed -i '' '1i\\\nimport ballerina/lang.value;\n' main.bal && bal run 2>&1 | tail -15",
+        "perl -pi -e 's/xml receipts = /xml<xml:Element> receipts = /' main.bal && bal build 2>&1",
+        "python3 - <<'E'\np='main.bal'\ns=open(p).read()\nopen(p,'w').write(s)\nE"];
+    commands.forEach((command, index) => {
+        const session = `w${index}`;
+        runHook("mark.mjs", { session_id: session, tool_name: "Skill", tool_input: { skill: "ballerina:ballerina" } });
+        assert.match(reminderOf(runHook("remind.mjs", { session_id: session, tool_name: "Bash", tool_input: { command } })) ?? "", /code-rules\.md/, command);
+    });
+});
+
 test("a MultiEdit of a .bal file and a command on Ballerina.toml both remind", () => {
     assert.ok(reminderOf(runHook("remind.mjs", { session_id: "s1", tool_name: "MultiEdit", tool_input: { file_path: "a.bal" } })));
     assert.ok(reminderOf(runHook("remind.mjs", { session_id: "s2", tool_name: "Bash", tool_input: { command: "cat Ballerina.toml" } })));
