@@ -27,7 +27,7 @@ Process them in order:
 | `cannot use type 'X' as a 'readonly'`                      | Mutable value where the API expects immutable                      | Call `.cloneReadOnly()` or declare the value as `readonly`       |
 | `invalid access of mutable storage in 'isolated' function` | Concurrency isolation violation inside an `isolated` function      | Wrap the access in `lock { ... }` or remove the shared mutability |
 | `invalid token 'X'` then `missing identifier` (later `$missingNode$`) | `X` is a keyword used as a field or variable name                 | Quote it: `'X` (a JSON key `X` still binds)                      |
-| `invalid record constructor: duplicate key 'X'`            | A spread already supplies field `X`, then `X` is given again       | Leave `X` out of the spread: `let T {X: _, ...rest} = r in {...rest, X: v}`; or `clone()` the record and assign `X` |
+| `invalid record constructor: duplicate key 'X'`            | A spread already supplies field `X`, then `X` is given again       | Leave `X` out of the spread: `let T {X: _, ...rest} = r in {...rest, X: v}`; or, for a mutable record, `clone()` it and assign `X` |
 
 > Ballerina's `isolated` qualifier enforces concurrency safety at compile time. `lock { ... }` gives exclusive access to shared mutable state — comparable to a Java `synchronized` block.
 
