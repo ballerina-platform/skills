@@ -34,11 +34,6 @@ mapped = {"command": claude_lsp["command"], "args": claude_lsp["args"],
 if mapped != copilot_lsp:
     errors.append("com.github.copilot/lsp.json differs from .lsp.json")
 
-claude_mcp = load(".mcp.json")["mcpServers"]["ballerina-library"]
-copilot_mcp = load("mcp.json")["mcpServers"]["ballerina-library"]
-if [a.replace("${CLAUDE_PLUGIN_ROOT}", "${PLUGIN_ROOT}") for a in claude_mcp["args"]] != copilot_mcp["args"] or claude_mcp["command"] != copilot_mcp["command"]:
-    errors.append("mcp.json differs from .mcp.json")
-
 claude_agent = body("agents/library.md").replace("via Bash", "via the shell")
 if claude_agent != body("com.github.copilot/agents/library.md"):
     errors.append("com.github.copilot/agents/library.md body differs from agents/library.md")

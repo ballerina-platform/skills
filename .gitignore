@@ -26,5 +26,5 @@ replay_pid*
 # OS generated files
 .DS_Store
 
-# Node dependencies (MCP server builds self-contained into mcp/dist/)
+# Node dependencies
 node_modules/
