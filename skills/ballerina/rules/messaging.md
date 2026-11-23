@@ -22,15 +22,11 @@ listener kafka:Listener lsn = new (bootstrapServers = url, topics = ["orders"]);
 service on lsn { ... }
 ```
 
-Verified: `ballerinax/kafka` (`topics`), `ballerina/mqtt` (`subscriptions`), `ballerinax/cdc`.
-
 **2. As the service attach path**, between the service type and `on`:
 
 ```text
 service <pkg>:<ServiceType> "<destination>" on <listener>
 ```
-
-Verified: `ballerinax/rabbitmq` (queue name), `ballerinax/nats` (subject), `ballerinax/salesforce` (CDC channel).
 
 **3. In a service-level annotation.**
 
@@ -38,8 +34,6 @@ Verified: `ballerinax/rabbitmq` (queue name), `ballerinax/nats` (subject), `ball
 @solace:ServiceConfig { queueName: "orders" }
 service on lsn { ... }
 ```
-
-Verified: `ballerinax/solace`, `ballerinax/ibm.ibmmq`, and `ballerinax/cdc` for the tables it watches (`@cdc:ServiceConfig { tables: ... }`).
 
 Note that "change-data-capture" does not settle it — Salesforce CDC takes an attach path, `ballerinax/cdc` does not.
 

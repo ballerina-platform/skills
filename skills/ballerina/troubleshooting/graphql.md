@@ -86,8 +86,5 @@ The `ballerina/graphql` compiler plugin enforces schema correctness up front. Co
 
 | Compile error                                            | Rule it enforces                                                          |
 | -------------------------------------------------------- | ------------------------------------------------------------------------- |
-| Service must have at least one resource method           | The `Query` type cannot be empty                                          |
 | Remote methods not allowed in sub-object service types   | Only the root service can declare `remote` methods                        |
-| Union member must be a `distinct service class`          | GraphQL is nominally typed — Ballerina union members must be distinct     |
-| Subscription must return `stream<T>`                     | Subscription resolvers must return a stream                               |
 | Interface must be implemented fully                      | All fields from an interface must appear on the implementing type         |

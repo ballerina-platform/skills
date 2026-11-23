@@ -3,7 +3,7 @@
 Read when calling an SAP system's OData or HTTP API (S/4HANA, SAP Gateway). The HTTP rules in
 [http.md](http.md) apply as well.
 
-For an SAP system's OData or HTTP API (S/4HANA, SAP Gateway), use `sap:Client` from `ballerinax/sap` instead of `http:Client`. It fetches the CSRF token, keeps the session cookie the token is bound to, sends the token on writes, and fetches a new one when SAP rejects it, so no hand-written CSRF handling is needed. Point it at the OData service root (e.g. `.../sap/opu/odata/sap/<SERVICE>`): it fetches the token with `HEAD /` relative to that URL.
+`sap:Client` from `ballerinax/sap` fetches the CSRF token, keeps the session cookie the token is bound to, sends the token on writes, and fetches a new one when SAP rejects it (as of sap 1.4.0), so no hand-written CSRF handling is needed. Point it at the OData service root (e.g. `.../sap/opu/odata/sap/<SERVICE>`). Use `http:Client` only for an operation `sap:Client` doesn't provide.
 
 ```ballerina
 import ballerinax/sap;

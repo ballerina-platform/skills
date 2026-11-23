@@ -85,6 +85,6 @@ Required rules for their domain, kept out of this file so you load only what app
 
 - Function parameters are immutable — assigning to one fails with *cannot assign a value to function argument*. Copy it into a local variable and modify that.
 - Propagate errors with `check`, or handle them with a `do`/`on fail` block; never use `checkpanic` to silence an error return in real code.
-- When a comparison of codes or identifiers must ignore case, use `equalsIgnoreCaseAscii()` against each known value. Don't normalise with `toLowerAscii()`/`toUpperAscii()`: as of 2201.14 they also convert non-ASCII letters and follow the JVM locale, so a non-ASCII look-alike of a letter can match.
+- When a comparison of codes or identifiers must ignore case, use `equalsIgnoreCaseAscii()` against each known value. Don't normalise with `toLowerAscii()`/`toUpperAscii()`: as of 2201.14 (lang#44860) they also convert non-ASCII letters and follow the JVM locale, so a non-ASCII look-alike of a letter can match.
 - `int:fromString` and `decimal:fromString` accept other scripts' digits (`"١٢٣"` gives `123`, as of 2201.14, lang#44921). When input must be ASCII, check ``re `[+-]?[0-9]+(\.[0-9]+)?`.isFullMatch(text)`` first; `\d` matches other scripts' digits too.
 - `//` is the only comment form — Ballerina has no `/* */` block comments (`invalid token '/*'`). `#` introduces documentation.

@@ -35,20 +35,9 @@ Before writing an `http:Client` for a product's API, look for its connector (SKI
 
 For idempotent calls (`GET`, `PUT`, `DELETE`, or a write the API deduplicates by an idempotency key), configure retries on the client — do not hand-write a retry loop with `runtime:sleep`:
 
-```ballerina
-http:Client partnerClient = check new (partnerBaseUrl,
-    timeout = 30,
-    retryConfig = {
-        count: 2,                              // RETRIES, not attempts — 2 means 3 calls
-        interval: 1,
-        backOffFactor: 2.0,
-        maxWaitInterval: 20,
-        statusCodes: [500, 502, 503, 504]
-    }
-);
-```
+`bal discover type RetryConfig -p ballerina/http --output-format text` shows the fields. What they do is easy to get wrong:
 
-- `count` is the number of **retries**, so "max N attempts" is `count: N - 1`. With the settings above, `count: 2` issues 3 requests in total, spaced ~1 s then ~2 s.
+- `count` is the number of **retries**, so "max N attempts" is `count: N - 1`. For example, `count: 2` issues 3 requests in total.
 - `statusCodes` is an explicit list, not a range. `[500, 502, 503, 504]` is *not* "all 5xx" — 501, 505, 507 and 511 fall through unretried. List every code you mean.
 - Exhausting retries keeps the two failure kinds distinguishable: a listed status code comes back as an **`http:Response` carrying its real status**; a transport failure (DNS, refused, timeout) comes back as an **`http:ClientError`**. So there is never a reason to invent a status code for a call that never reached the server — record "no response" as its own outcome.
 - This is not only for `http:Client`. A `ballerinax/*` connector that speaks HTTP underneath usually carries `retryConfig` on its own `ConnectionConfig` — configure it there instead of wrapping the connector in a loop. Database and messaging clients (`postgresql`, `mysql`, `mongodb`, `redis`, `kafka`, `rabbitmq`, …) have no such field; check the connector's config record before assuming either way.

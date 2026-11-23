@@ -28,7 +28,7 @@ Signs:
 - Requests timing out only under load
 - Latency that climbs as throughput climbs
 
-Defaults:
+Defaults (as of http 2.18):
 
 | Setting                | Default          | Notes                                      |
 | ---------------------- | ---------------- | ------------------------------------------ |

@@ -7,7 +7,7 @@
 | Error / symptom                                                           | Likely cause                                                                              | Fix                                                                                              |
 | ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
 | `{ballerina/data.jsondata}ConversionError`                                | JSON structure doesn't match the target record                                            | Compare field names, types, nesting. JSON keys are case-sensitive.                               |
-| `ConversionError` with `missing required field`                           | A non-optional record field has no corresponding JSON key                                 | Mark the field optional (`string? name`) or give it a default (`string name = ""`)               |
+| `ConversionError` with `missing required field`                           | A non-optional record field has no corresponding JSON key                                 | Mark the field optional (`string name?`) or give it a default (`string name = ""`); a nilable `string?` field still needs the key               |
 | `ConversionError` with `incompatible type`                                | The JSON value type doesn't match the record field (e.g. `"123"` vs `int`)                | Either change the record field type or transform the JSON before binding                          |
 | `cloneWithType` rejects extra fields (`{ballerina/lang.value}ConversionError`) | Target is a closed record; `cloneWithType` does no projection (`jsondata:parseString`/`parseAsType` drop extra fields by default) | Use `jsondata:parseAsType`, an open record, or list the extra fields explicitly |
 | `{ballerina/data.xmldata}ConversionError`                                 | XML structure mismatched the record                                                       | Check element names, namespaces, and attribute handling                                          |
@@ -29,7 +29,7 @@ import ballerina/data.jsondata;
 // Default behaviour — open record, optional fields and defaults are honored
 type User record {
     string name;
-    string? email;     // optional — absent key maps to nil
+    string? email;     // nilable: JSON null gives (); an absent key is still an error (use `string email?;`)
     int age = 0;       // default value — absent key uses the default
 };
 

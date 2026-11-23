@@ -99,8 +99,10 @@ http:Client apiClient = check new ("https://api.example.com", {
 
 ### JWT auth on a service
 
+Auth goes on the service's `@http:ServiceConfig`; `http:ListenerConfiguration` has no `auth` field.
+
 ```ballerina
-listener http:Listener secureListener = new (9090, {
+@http:ServiceConfig {
     auth: [
         {
             jwtValidatorConfig: {
@@ -115,7 +117,10 @@ listener http:Listener secureListener = new (9090, {
             scopes: ["admin"]
         }
     ]
-});
+}
+service /api on new http:Listener(9090) {
+    // resources
+}
 ```
 
 ### Diagnosis steps for auth failures
