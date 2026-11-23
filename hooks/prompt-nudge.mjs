@@ -20,7 +20,7 @@ import { readdirSync } from "node:fs";
 import { join } from "node:path";
 import { loadState, readInput, saveState } from "./session.mjs";
 
-const PROMPT_TERMS = /\bballerina\b|\.bal\b|ballerina\.toml|\bbal\s+(new|build|run|test|add|pull|push)\b/i;
+const PROMPT_TERMS = /\bballerina\b|\.bal\b|ballerina\.toml|\bbal\s+(new|build|run|test|add|pull|push|discover)\b/i;
 const SKIP_DIRS = new Set(["node_modules", ".git", "target", ".venv", "dist", "build"]);
 
 function hasBallerinaFiles(dir, depth) {

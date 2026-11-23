@@ -26,11 +26,11 @@ kafka:ConsumerConfiguration consumerConfig = {
 };
 ```
 
-### The service contract is not in the API dump
+### The service contract
 
 `kafka:Service` is declared as a bare marker (`distinct service object { }`) and the remote
-method is validated by a compiler plugin, so a library API dump shows an empty service body.
-That is not a tool failure and does not mean the service has no methods. The contract is:
+method is validated by a compiler plugin, so its source shows an empty service body
+(`bal discover service -p ballerinax/kafka` prints the methods). The contract is:
 
 ```text
 service on kafkaListener {

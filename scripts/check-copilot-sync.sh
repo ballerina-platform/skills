@@ -34,10 +34,6 @@ mapped = {"command": claude_lsp["command"], "args": claude_lsp["args"],
 if mapped != copilot_lsp:
     errors.append("com.github.copilot/lsp.json differs from .lsp.json")
 
-claude_agent = body("agents/library.md").replace("via Bash", "via the shell")
-if claude_agent != body("com.github.copilot/agents/library.md"):
-    errors.append("com.github.copilot/agents/library.md body differs from agents/library.md")
-
 for e in errors:
     print(f"out of sync: {e}", file=sys.stderr)
 sys.exit(1 if errors else 0)

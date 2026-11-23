@@ -8,7 +8,6 @@ on:
       - "plugin.json"
       - ".lsp.json"
       - "com.github.copilot/**"
-      - "agents/**"
       - "scripts/check-copilot-sync.sh"
   push:
     branches: [main]

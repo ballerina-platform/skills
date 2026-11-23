@@ -20,7 +20,7 @@ import { join } from "node:path";
 import { loadState, readInput, saveState } from "./session.mjs";
 
 const MAX_SKILL_REMINDERS = 3;
-const BAL_COMMAND = /(^|[\s;&|(])bal\s+(new|build|run|test|add|pull|push|format|pack)\b/;
+const BAL_COMMAND = /(^|[\s;&|(])bal\s+(new|build|run|test|add|pull|push|format|pack|discover)\b/;
 const REDIRECT_TO_BAL = /(>>?|\btee(\s+-a)?)\s*[^\s<>]*\.bal\b/;
 // Agents also edit .bal files from Python or Node one-liners.
 const SCRIPT_WRITE = /\bopen\([^)]*,\s*["'][wa]|\.write_text\(|writeFileSync\(/;

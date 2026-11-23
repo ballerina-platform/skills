@@ -30,11 +30,11 @@ cd <project-name>
 
 **Step 1 — Read existing code and plan file layout**: Read `.bal` files and `Ballerina.toml` to understand the project and its existing layout. Place new code in the file that fits its concern rather than everything in `main.bal`.
 
-**Step 2 — Discover libraries if needed**: If the task calls a product's API (SAP, Salesforce, GitHub, …), look for its connector first, even when the task describes plain HTTP calls; write `http:Client` code only when there is none, or when it lacks the operation the task needs. If the task needs an external connector or library you don't know, invoke the `library` agent with the full task (including auth and trigger/event details), one call per library, in parallel, while you carry on with other work. Add the `import` it returns; `bal build` resolves the dependency from Central. Trust its API summary rather than reading package sources, and never call `get_library` yourself: its output is the whole library API. No `library` agent? Follow [rules/library.md](rules/library.md).
+**Step 2 — Look up libraries**: If the task calls a product's API (SAP, Salesforce, GitHub, …), look for its connector first, even when the task describes plain HTTP calls; write `http:Client` code only when there is none, or when it lacks the operation the task needs. Look up every library API you use with `bal discover`, as [rules/library.md](rules/library.md) describes, and add the `import`; `bal build` resolves the dependency from Central.
 
 **Step 3 — Write the code**, following [code-rules.md](code-rules.md) and the domain rules it routes to. If the Ballerina language server (LSP) is available, use `hover` and `goToDefinition` to confirm a symbol's type or an API's real shape.
 
-**Step 4 — Validate**: Run `bal build`. Fix every error before moving on. Repeat until clean. If an error is about a library's own API (wrong method, listener, or service signature), ask the `library` agent for the specific detail rather than re-guessing.
+**Step 4 — Validate**: Run `bal build`. Fix every error before moving on. Repeat until clean. If an error is about a library's own API (wrong method, listener, or service signature), look it up again (Step 2) rather than re-guessing.
 
 ## Running and Testing
 

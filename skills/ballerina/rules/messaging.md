@@ -4,9 +4,8 @@ Read when building anything that sends to or receives from a broker or queue —
 
 Attaching the service is connector-specific — read that section for the one you are using.
 The acknowledgement and raw-payload sections hold for any broker. The last section is
-Kafka's concrete API; other connectors express the same ideas with their own calls, so ask
-the `library` agent for the acknowledgement API of the one you are using rather than
-assuming Kafka's.
+Kafka's concrete API; other connectors express the same ideas with their own calls, so look
+up the acknowledgement API of the one you are using (Step 2) rather than assuming Kafka's.
 
 ## Producing (Kafka)
 
@@ -14,7 +13,7 @@ When a successful `send` must mean the record is stored and not duplicated by re
 
 ## Attaching the service
 
-Connectors put the destination in one of three places, and you cannot infer which from the kind of connector — check the one in front of you (ask the `library` agent, or read its README).
+Connectors put the destination in one of three places, and you cannot infer which from the kind of connector — check the one in front of you: `bal discover service -p <org>/<name>` prints its service type, the methods to implement and their rules.
 
 **1. On the listener config.** `service on myListener { ... }` is then the complete attach form; there is no channel string to look for.
 

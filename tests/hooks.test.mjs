@@ -65,6 +65,11 @@ test("remind asks for the skill on a .bal write through Bash, at most three time
     assert.match(outputs[0], /Load the `ballerina` skill/);
 });
 
+test("a bal discover command asks for the skill, and so does a prompt naming it", () => {
+    assert.match(reminderOf(runHook("remind.mjs", { session_id: "s1", tool_name: "Bash", tool_input: { command: "bal discover client Producer -p ballerinax/kafka" } })), /Load the `ballerina` skill/);
+    assert.match(runHook("prompt-nudge.mjs", { session_id: "s2", prompt: "run bal discover on the kafka package", cwd: stateDir }), /ballerina/);
+});
+
 test("remind output is valid JSON and never makes a permission decision", () => {
     const output = JSON.parse(runHook("remind.mjs", { session_id: "s1", tool_name: "Bash", tool_input: { command: "bal build" } }));
     assert.equal(output.hookSpecificOutput.permissionDecision, undefined);
