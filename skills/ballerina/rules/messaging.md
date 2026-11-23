@@ -1,12 +1,16 @@
 # Event-Driven Service Rules
 
-Read when building anything that receives events through a listener — a broker or queue consumer (Kafka, RabbitMQ, NATS, JMS, MQTT, …) or a change-data-capture listener.
+Read when building anything that sends to or receives from a broker or queue — a producer or a consumer (Kafka, RabbitMQ, NATS, JMS, MQTT, Solace, …) — or a change-data-capture listener.
 
 Attaching the service is connector-specific — read that section for the one you are using.
 The acknowledgement and raw-payload sections hold for any broker. The last section is
 Kafka's concrete API; other connectors express the same ideas with their own calls, so ask
 the `library` agent for the acknowledgement API of the one you are using rather than
 assuming Kafka's.
+
+## Producing (Kafka)
+
+When a successful `send` must mean the record is stored and not duplicated by retries, set `acks: kafka:ACKS_ALL` and `enableIdempotence: true` on the producer rather than relying on the defaults (`bal discover type ProducerConfiguration -p ballerinax/kafka` shows them: `ACKS_SINGLE` and `false` as of kafka 4.6.8, library#9837). Idempotence needs `ACKS_ALL`: with another `acks` value, `init` panics (as of kafka 4.6.8).
 
 ## Attaching the service
 
@@ -63,7 +67,8 @@ Check first whether the remote method receives **one** message or a **batch** �
   | Downstream call the design tolerates failing | No — record the outcome and carry on |
 
 - Check whether the acknowledgement call is **per-message or batch-scoped** before using it. A batch-scoped call placed inside the message loop acknowledges messages the loop has not processed yet — including ones it deliberately skipped.
-- Switching off automatic acknowledgement is only safe together with the above. Manual acknowledgement done carelessly is strictly worse than leaving it automatic.
+- For at-least-once delivery with `ballerinax/solace`, set `ackMode: solace:CLIENT_ACK` and settle every message yourself: `caller->ack(message)` after the work succeeds, `caller->nack(message)` (requeue) when it fails, `caller->nack(message, requeue = false)` for one that can never succeed (it goes to the dead message queue, if the queue has one). Catch every failure inside `onMessage`, and take the plain `solace:Message` and parse its payload there: a returned error, a panic or a binding failure leaves the message unsettled until the connection drops. A requeued message comes back at once, so give the queue a redelivery delay or limit. Don't rely on `AUTO_ACK`, the default: as of solace 1.2.1 it acknowledges before `onMessage` runs, though the `Caller.ack` doc says otherwise, so a failed message is lost (library#9834).
+- Switching off automatic acknowledgement is only safe together with the above. Manual acknowledgement done carelessly is worse than an automatic mode that acknowledges only after the handler succeeds.
 
 ## Preserving the raw payload (any broker)
 

@@ -10,8 +10,10 @@ Required rules for their domain, kept out of this file so you load only what app
 | ------------- | ---- |
 | An HTTP service, or calling an HTTP API | [rules/http.md](rules/http.md) |
 | An SAP system's OData or HTTP API (S/4HANA, SAP Gateway) | [rules/sap.md](rules/sap.md) |
-| A consumer for a broker or queue (Kafka, RabbitMQ, NATS, JMS, …), or any listener that receives events — change-data-capture included | [rules/messaging.md](rules/messaging.md) |
+| A producer or consumer for a broker or queue (Kafka, RabbitMQ, NATS, JMS, Solace, …), or any listener that receives events — change-data-capture included | [rules/messaging.md](rules/messaging.md) |
 | A database client, or SQL queries | [rules/sql.md](rules/sql.md) |
+| Checking XML against a schema, binding XML to records, or types generated from an XSD (`bal xsd`) | [rules/xml.md](rules/xml.md) |
+| Rounding or formatting amounts (`decimal`) | [rules/numbers.md](rules/numbers.md) |
 | A GraphQL service | write the schema first if the user has not given one, then name Ballerina records after its types |
 | More than one package in the repo, or a service **plus** a `main` | [rules/workspace.md](rules/workspace.md) |
 | The program connects to a broker, database, or other external server | [rules/integration-testing.md](rules/integration-testing.md) |
@@ -84,4 +86,5 @@ Required rules for their domain, kept out of this file so you load only what app
 - Function parameters are immutable — assigning to one fails with *cannot assign a value to function argument*. Copy it into a local variable and modify that.
 - Propagate errors with `check`, or handle them with a `do`/`on fail` block; never use `checkpanic` to silence an error return in real code.
 - When a comparison of codes or identifiers must ignore case, use `equalsIgnoreCaseAscii()` against each known value. Don't normalise with `toLowerAscii()`/`toUpperAscii()`: as of 2201.14 they also convert non-ASCII letters and follow the JVM locale, so a non-ASCII look-alike of a letter can match.
+- `int:fromString` and `decimal:fromString` accept other scripts' digits (`"١٢٣"` gives `123`, as of 2201.14, lang#44921). When input must be ASCII, check ``re `[+-]?[0-9]+(\.[0-9]+)?`.isFullMatch(text)`` first; `\d` matches other scripts' digits too.
 - `//` is the only comment form — Ballerina has no `/* */` block comments (`invalid token '/*'`). `#` introduces documentation.

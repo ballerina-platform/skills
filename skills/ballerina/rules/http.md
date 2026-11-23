@@ -14,9 +14,22 @@ resource function get users() returns UserList|http:NotFound|http:NotImplemented
 
 Use `http:NotImplemented` as a placeholder return type initially, then implement each resource function.
 
+A `post` resource that returns a plain value (`string`, `json`, a record), or answers through `http:Caller` with one, responds `201 Created`; one that returns nothing responds `202 Accepted`. When callers expect `200` (the endpoint replaces an existing one, or creates nothing), return `http:Ok` (set its `mediaType` when the content type matters) or an `http:Response`.
+
+## XML bodies
+
+- Read an XML body, of a request or a client response, with `getXmlPayload()`: it works whatever the content type and handles a leading byte order mark (BOM). `@http:Payload xml` and an `xml` client target type bind only an XML content type (a `text/plain` sender gets `400`), and an XML body doesn't bind to a record (as of http 2.18, library#9527).
+- For a record, parse the bytes: `xmldata:parseBytes(check request.getBinaryPayload())`. It doesn't check the root element's name; check it yourself when it matters.
+- Don't decode the body as text and call `xml:fromString`: as of 2201.14 a leading BOM then becomes a stray text item, or an error when an XML declaration follows (lang#44899).
+- A document with an XML declaration is a sequence (processing instruction, then the element), so `doc is xml:Element` is false. Navigate it (`doc/<Child>`), or take the root element with `doc.elements()`.
+
 ## Product APIs
 
 Before writing an `http:Client` for a product's API, look for its connector (SKILL.md Step 2) and use it when there is one: it already handles the product's auth and protocol details. For SAP, see [sap.md](sap.md).
+
+## Client protocol
+
+`http:Client` defaults to HTTP/2, so on an `http://` URL its first request carries an `Upgrade: h2c` header, which some proxies and gateways reject (e.g. with `501`). For an `http://` endpoint, set `httpVersion = http:HTTP_1_1` on `http:Client`, and on a connector's config when it has `httpVersion` (`bal discover type <ConfigType> -p <org>/<package>` shows the field and its default; `sap:Client` defaults to HTTP/2 as of sap 1.4.0, library#9768). `https://` needs nothing: the version is negotiated in the TLS handshake.
 
 ## Client resilience
 

@@ -123,6 +123,7 @@ if result is http:ClientRequestError {
 | `SSL/TLS handshake failure`        | Cert mismatch, expired cert, missing CA in trust store    | `openssl s_client -connect host:port`                          | Configure `secureSocket`, or trust the CA in the JRE truststore  |
 | `All retry attempts failed`        | Every retry attempt failed too                            | Inspect logs for the per-attempt cause                         | Fix the upstream, or adjust the retry policy                     |
 | `Maximum wait time exceeded`       | HTTP connection pool exhausted; requests queue            | Enable DEBUG; watch for pool-exhaustion messages               | Raise `maxActiveConnections` in `poolConfig`                     |
+| First request to an `http://` URL fails (`501`, `400`, reset), later ones work | HTTP/2 upgrade request rejected by a proxy or gateway | Trace log shows `upgrade: h2c` on the failing request | Set `httpVersion = http:HTTP_1_1` on the client (or the connector's config) |
 
 ## HTTP listener / service errors
 
@@ -176,6 +177,8 @@ Plus the listener-side binding errors that surface as `400 Bad Request`:
 | `500 Internal Server Error`                   | Unhandled error or panic in a resource function       | Check stderr for the stack trace                          | Fix the error in the resource handler                        |
 | Browser CORS error                            | CORS not configured or misconfigured                  | Check response headers in the trace log                   | Configure `http:CorsConfig` on the service                   |
 | Request body silently empty                   | Body not consumed before responding                   | —                                                          | Call `request.getJsonPayload()` (or `getTextPayload`, etc.)   |
+| `POST` answers `201` or `202` where callers expect `200` | A `post` resource returns a plain value (`201`) or nothing (`202`) | — | Return `http:Ok` or an `http:Response` |
+| `400` `data binding failed` on an XML body | `@http:Payload xml` with a non-XML content type, or a record parameter | — | `request.getXmlPayload()`; for a record, `xmldata:parseBytes(check request.getBinaryPayload())` |
 
 A `500` from a Ballerina service almost always means a panic or unhandled error inside a resource function. Look in **stderr** for a stack trace with frames like `at myorg/…` and read [runtime.md](runtime.md) for the panic-handling rules.
 

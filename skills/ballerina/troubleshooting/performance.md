@@ -51,6 +51,10 @@ http:Client apiClient = check new ("http://backend.example.com", {
 
 > Raising `maxActiveConnections` only helps if the **upstream can absorb the extra concurrency**. If the upstream is the bottleneck, more connections will make latency worse, not better.
 
+## Large HTTP bodies
+
+As of 2201.14, reading a multi-MB body as text (`getTextPayload()`, a `string` payload or target type) is 2-3.5x slower than reading its bytes (lang#44898). Where it matters, read `getBinaryPayload()` and decode with `string:fromBytes()`.
+
 ## SQL connection pool
 
 Defaults:
