@@ -12,7 +12,7 @@ Binding to a record is not validation: it ignores element order and doesn't chec
 
 - Generate record types with `bal xsd <schema>.xsd`. Don't edit the generated file; regenerating overwrites it. The
   xsd tool 1.4.0 writes `string x?= "v";` for an optional element with a default, which doesn't compile; 1.4.1 fixes it
-  (`bal tool update xsd`).
+  (ask the user to update the xsd tool).
 - As of xmldata 1.7, binding to the generated types differs from the schema in three ways:
   - Elements the record doesn't declare are dropped silently, even though the generated records are closed. Parse
     with `{allowDataProjection: false}` to reject them (library#9840).

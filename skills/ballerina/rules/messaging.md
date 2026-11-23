@@ -9,11 +9,11 @@ up the acknowledgement API of the one you are using (Step 2) rather than assumin
 
 ## Producing (Kafka)
 
-When a successful `send` must mean the record is stored and not duplicated by retries, set `acks: kafka:ACKS_ALL` and `enableIdempotence: true` on the producer rather than relying on the defaults (`bal discover type ProducerConfiguration -p ballerinax/kafka` shows them: `ACKS_SINGLE` and `false` as of kafka 4.6.8, library#9837). Idempotence needs `ACKS_ALL`: with another `acks` value, `init` panics (as of kafka 4.6.8).
+When a successful `send` must mean the record is stored and not duplicated by retries, set `acks: kafka:ACKS_ALL` and `enableIdempotence: true` on the producer rather than relying on the defaults (`bal discover type ProducerConfiguration -p ballerinax/kafka --output-format text` shows them: `ACKS_SINGLE` and `false` as of kafka 4.6.8, library#9837). Idempotence needs `ACKS_ALL`: with another `acks` value, `init` panics (as of kafka 4.6.8).
 
 ## Attaching the service
 
-Connectors put the destination in one of three places, and you cannot infer which from the kind of connector — check the one in front of you: `bal discover service -p <org>/<name>` prints its service type, the methods to implement and their rules.
+Connectors put the destination in one of three places, and you cannot infer which from the kind of connector — check the one in front of you: `bal discover service -p <org>/<name> --output-format text` prints its service type, the methods to implement and their rules.
 
 **1. On the listener config.** `service on myListener { ... }` is then the complete attach form; there is no channel string to look for.
 

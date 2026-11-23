@@ -30,7 +30,7 @@ kafka:ConsumerConfiguration consumerConfig = {
 
 `kafka:Service` is declared as a bare marker (`distinct service object { }`) and the remote
 method is validated by a compiler plugin, so its source shows an empty service body
-(`bal discover service -p ballerinax/kafka` prints the methods). The contract is:
+(`bal discover service -p ballerinax/kafka --output-format text` prints the methods). The contract is:
 
 ```text
 service on kafkaListener {

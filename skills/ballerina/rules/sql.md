@@ -78,8 +78,6 @@ names, every query must quote them too.
 
 ## Generated keys
 
-`sql:ExecutionResult.lastInsertId` covers `SERIAL` / `IDENTITY` columns. When you need other
-generated columns in the same round trip, use `RETURNING` with `queryRow`.
+`bal discover type ExecutionResult -p ballerina/sql --output-format text` shows what an insert returns. For
+generated columns other than `lastInsertId`, use `RETURNING` with `queryRow`.
 
-For diagnosing a failure that has already happened — connection errors, the `sql:Error`
-hierarchy, transactions — see [../troubleshooting/sql.md](../troubleshooting/sql.md).

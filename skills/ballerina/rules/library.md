@@ -15,6 +15,9 @@ Read before writing code against a connector or library.
   version on Central, which may differ from the one the build resolves (`Dependencies.toml`).
 - Copy signatures verbatim; never invent them. `bal discover <noun> --help` shows a noun's options.
 - It reads Central, not the installed distribution: for `lang.*` behaviour, the version that applies is `bal version`.
+- Behaviour notes in these rules say "as of <package> <version>" with an issue id. The version that applies is on
+  discover's header line when run from the project folder (`ballerinax/kafka:4.6.8 · …`) or in `Dependencies.toml`
+  (`bal version` for `lang.*`). If it is newer than the note's, check the issue before applying the workaround.
 
 When both a `trigger.*` listener package and a connector that ships its own listener cover the same events (e.g.
 `ballerinax/trigger.<x>` vs `ballerinax/<x>`), pick the connector's listener: `trigger.*` packages are being
@@ -22,7 +25,7 @@ superseded. Don't judge by the modified date.
 
 ## Without `bal discover`
 
-If `bal discover --help` exits non-zero (unknown command, "removed manually", no network):
+If `bal discover` isn't installed or a `bal discover` command fails (unknown command, "removed manually", no network):
 
 1. Tell the user once that `bal tool pull discover` (Ballerina 2201.14 or later) gives faster lookups. Never run
    `bal tool pull` or `bal tool remove` yourself unless asked, even when `bal` suggests it.
@@ -36,4 +39,4 @@ If `bal discover --help` exits non-zero (unknown command, "removed manually", no
    vary between connectors (`client.bal`, `types.bal`, `listener.bal`, `service_types.bal`, …), so search rather than
    assume a name. Read only the matching declarations and their doc comments.
 5. Use the signatures you find verbatim; never invent them. An empty service body in a connector's service type
-   (`service object { }`) means a compiler plugin checks the remote methods: read the package README for them.
+   (`service object { }`) means a compiler plugin checks the remote methods: read the package README (`docs/README.md` in the pulled package) for them.

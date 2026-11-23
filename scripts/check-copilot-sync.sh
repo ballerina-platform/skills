@@ -10,10 +10,6 @@ def load(path):
     with open(path) as f:
         return json.load(f)
 
-def body(path):
-    text = open(path).read()
-    return text.split("---", 2)[2].strip()
-
 errors = []
 
 claude, copilot = load(".claude-plugin/plugin.json"), load("plugin.json")

@@ -72,7 +72,8 @@ Representative requests:
 ## Removed in 0.6.0
 
 The `ballerina:library` agent and the `get_library` MCP tool are gone; the skill looks libraries up with `bal discover`
-(or the pulled package source). Saved permission rules or instructions that name them no longer apply.
+(or, before Ballerina 2201.14, the pulled package source). Saved permission rules or instructions that name them no
+longer apply.
 
 ## License
 

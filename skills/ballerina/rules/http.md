@@ -29,11 +29,11 @@ Before writing an `http:Client` for a product's API, look for its connector (SKI
 
 ## Client protocol
 
-`http:Client` defaults to HTTP/2, so on an `http://` URL its first request carries an `Upgrade: h2c` header, which some proxies and gateways reject (e.g. with `501`). For an `http://` endpoint, set `httpVersion = http:HTTP_1_1` on `http:Client`, and on a connector's config when it has `httpVersion` (`bal discover type <ConfigType> -p <org>/<package>` shows the field and its default; `sap:Client` defaults to HTTP/2 as of sap 1.4.0, library#9768). `https://` needs nothing: the version is negotiated in the TLS handshake.
+`http:Client` defaults to HTTP/2, so on an `http://` URL its first request carries an `Upgrade: h2c` header, which some proxies and gateways reject (e.g. with `501`). For an `http://` endpoint, set `httpVersion = http:HTTP_1_1` on `http:Client`, and on a connector's config when it has `httpVersion` (`bal discover type <ConfigType> -p <org>/<package> --output-format text` shows the field and its default; `sap:Client` defaults to HTTP/2 as of sap 1.4.1, library#9768). `https://` needs nothing: the version is negotiated in the TLS handshake.
 
 ## Client resilience
 
-For idempotent calls (`GET`, `PUT`, `DELETE`, or a write the API deduplicates by an idempotency key), configure retries on the client — do not hand-write a retry loop with `runtime:sleep`:
+For idempotent calls (`GET`, `PUT`, `DELETE`, or a write the API deduplicates by an idempotency key), configure retries on the client — do not hand-write a retry loop with `runtime:sleep`.
 
 `bal discover type RetryConfig -p ballerina/http --output-format text` shows the fields. What they do is easy to get wrong:
 
