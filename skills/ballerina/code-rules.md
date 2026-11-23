@@ -15,6 +15,7 @@ These are not optional extras; they are the rules for their domain, kept out of 
 | More than one package in the repo, or a service **plus** a `main` | [rules/workspace.md](rules/workspace.md) |
 | The program connects to a broker, database, or other external server | [rules/integration-testing.md](rules/integration-testing.md) |
 | Writing tests — only when the user asked for them | [rules/tests.md](rules/tests.md) |
+| A `Dockerfile`, or packaging for Docker or Kubernetes | the Docker and Kubernetes sections of [troubleshooting/deployment.md](troubleshooting/deployment.md) |
 
 ## Structure
 
@@ -29,6 +30,7 @@ These are not optional extras; they are the rules for their domain, kept out of 
 
 - Use records for all data structures. Never use `map<json>`, `map<anydata>`, or raw `json`.
 - Prefer closed records (`record {| ... |}`) for data shapes you own. Use an open record only when tolerating extra/unknown fields is deliberate (e.g. a loosely-specified inbound payload).
+- To copy a record with one field changed: `let T {f: _, ...rest} = r in {...rest, f: v}` (a shallow copy; destructure `r.clone()` for a deep one).
 - Never access or manipulate a `json` variable directly. Define a record, convert json to it (`cloneWithType()` or `fromJsonStringWithType()`), then use the record.
 - If a return typedesc is marked `<>` in API docs, define a custom record for the expected data shape.
 - If a parameter type is `record {|anydata...;|}`, define or reuse an explicit named record — do not pass an anonymous literal.
@@ -38,7 +40,7 @@ These are not optional extras; they are the rules for their domain, kept out of 
 ## Identifiers
 
 - Names must be descriptive. Single letters and bare abbreviations (`x`, `res`, `tmp`) are not acceptable; **two-word camelCase** is the norm for variables, parameters and record fields (e.g., `userName`, `baseUrl`, `responseBody`).
-- Exception: a record whose fields bind to external payload/JSON keys (e.g. via `cloneWithType()`) must use the **exact source key names** — even if that means single-word or PascalCase (e.g. `Name`, `CreatedDate`). The wire contract wins over the naming convention here.
+- Exception: a record whose fields bind to external payload/JSON keys (e.g. via `cloneWithType()`) must use the **exact source key names** — even if that means single-word or PascalCase (e.g. `Name`, `CreatedDate`). The wire contract wins over the naming convention here. A key that is a Ballerina keyword is written as a quoted identifier, e.g. `string 'table;`; the JSON key `table` still binds.
 
 ## Function Calls
 
@@ -84,4 +86,5 @@ These are not optional extras; they are the rules for their domain, kept out of 
 - Function parameters are immutable — assigning to one fails with *cannot assign a value to function argument*. Copy it into a local variable and modify that.
 - Declare listeners and attach services statically at module level; do not register or attach them at runtime.
 - Propagate errors with `check`, or handle them with a `do`/`on fail` block; never use `checkpanic` to silence an error return in real code.
+- When a comparison of codes or identifiers must ignore case, use `equalsIgnoreCaseAscii()` against each known value. Don't normalise with `toLowerAscii()`/`toUpperAscii()`: as of 2201.14 they also convert non-ASCII letters and follow the JVM locale, so a non-ASCII look-alike of a letter can match.
 - `//` is the only comment form — Ballerina has no `/* */` block comments (`invalid token '/*'`). `#` introduces documentation.

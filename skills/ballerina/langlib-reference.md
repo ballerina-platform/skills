@@ -89,6 +89,7 @@ text.endsWith("World")
 text.trim()
 text.toUpperAscii()
 text.toLowerAscii()
+text.equalsIgnoreCaseAscii(str2 = "hello world") // boolean, ASCII letters only
 text.toBytes()                  // byte[]
 string:fromBytes(data)          // check — byte[] → string
 string:'join(", ", "a", "b")    // "a, b"

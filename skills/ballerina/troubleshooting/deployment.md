@@ -6,6 +6,8 @@ Covers Docker, Kubernetes, GraalVM native image, and runtime configuration in de
 
 Ballerina supports Code-to-Cloud (C2C) Docker generation via `cloud = "docker"` in `Ballerina.toml`. The generated image uses `ballerina/jvm-runtime` (Debian-based). Custom base images (e.g. Alpine) can hit native-library compatibility issues — usually around DNS resolution and TLS.
 
+A hand-written `Dockerfile` that runs the jar from `bal build` needs a base image with at least the distribution's Java version: Java 25 for 2201.14.x (e.g. `eclipse-temurin:25-jre`), Java 21 for 2201.13.x. Check the distribution with `bal version`.
+
 ```bash
 # In Ballerina.toml: [build-options] cloud = "docker"
 bal build
@@ -19,6 +21,7 @@ docker run -p 9090:9090 myapp:latest
 
 | Symptom                                  | Cause                                            | Fix                                                                       |
 | ---------------------------------------- | ------------------------------------------------ | ------------------------------------------------------------------------- |
+| `UnsupportedClassVersionError` (`class file version 69.0`) | Base image's Java is older than the distribution's | Use a Java 25 runtime for 2201.14.x (Java 21 for 2201.13.x), e.g. `eclipse-temurin:25-jre` |
 | Container starts but service unreachable | Port not exposed, or listener bound to localhost | Expose the port; bind the listener to `0.0.0.0`                           |
 | `Config.toml` not found in the container | Not mounted                                      | Mount as a volume or pass `BAL_CONFIG_DATA` as an env var                 |
 | `OutOfMemoryError` inside the container  | Container memory limit too low for the JVM       | Raise the container limit; set `-Xmx` via `JAVA_OPTS`                     |
