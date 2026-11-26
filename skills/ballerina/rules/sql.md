@@ -29,8 +29,12 @@ compiles and then fails with SQL state `42804`:
 | Column type | Bind this |
 | ----------- | --------- |
 | `timestamptz` / `timestamp` | `time:Utc` or `time:Civil` |
-| PostgreSQL `jsonb` | `postgresql:JsonBinaryValue` |
-| PostgreSQL `json` | `postgresql:JsonValue` |
+| PostgreSQL `jsonb` | `new postgresql:JsonBinaryValue(value.toJsonString())` |
+| PostgreSQL `json` | `new postgresql:JsonValue(value.toJsonString())` |
+
+Pass JSON text: `toJsonString()` on the record (or `json`) value; a `string` that already holds JSON text goes in as is
+(`toJsonString()` would quote it again). As of postgresql 1.19 a `json` value is sent with `toString()`, which doesn't
+escape quotes, backslashes or newlines, so the insert fails (library#9836).
 
 An explicit SQL cast (`${text}::jsonb`, `${text}::timestamptz`) also works, but the typed
 value does not depend on getting the cast syntax right.
@@ -59,8 +63,11 @@ if result is sql:NoRowsError {
 Matching columns to record fields is **case-insensitive**, so a `receivedat` column fills a
 `receivedAt` field. The two mismatch directions do not behave alike:
 
-- a record field with **no matching column** is silently left at its zero value — `null` for a
-  `string`, `0` for an `int`, so it can look like real data;
+- a record field with **no matching column** raises no error: an `int` reads `0` and a `boolean`
+  `false`, so it can look like real data, and a `string` or `decimal` field holds `()` even when its
+  type isn't nilable, so `== ""` is false and a string method on it panics (as of sql 1.19,
+  library#9835). Select a column for every field you read, or declare the field optional
+  (`string email?;`) or nilable (`string? email;`);
 - a column with **no matching record field** raises `sql:FieldMismatchError`.
 
 ## Schema identifiers
@@ -71,8 +78,6 @@ names, every query must quote them too.
 
 ## Generated keys
 
-`sql:ExecutionResult.lastInsertId` covers `SERIAL` / `IDENTITY` columns. When you need other
-generated columns in the same round trip, use `RETURNING` with `queryRow`.
+`bal discover type ExecutionResult -p ballerina/sql --output-format text` shows what an insert returns. For
+generated columns other than `lastInsertId`, use `RETURNING` with `queryRow`.
 
-For diagnosing a failure that has already happened — connection errors, the `sql:Error`
-hierarchy, transactions — see [../troubleshooting/sql.md](../troubleshooting/sql.md).

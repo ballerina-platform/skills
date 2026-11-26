@@ -1,5 +1,7 @@
 # SQL / Database Issues
 
+**Contents:** Connection failures · Parameter binding — compiles clean, fails at execution · Query and result errors · Transactions
+
 ## Connection failures
 
 The most common SQL problem is failing to connect:
@@ -71,12 +73,12 @@ Verified against PostgreSQL 16 with `ballerinax/postgresql` 1.19.0:
 | Column type       | Bind this                                | Not this                                        |
 | ----------------- | ---------------------------------------- | ----------------------------------------------- |
 | `timestamptz` / `timestamp` | `time:Utc` or `time:Civil` — both work directly | a `string` (e.g. `time:utcToString(...)`) → 42804 |
-| PostgreSQL `jsonb` | `postgresql:JsonBinaryValue`            | a bare `string` parameter → 42804               |
-| PostgreSQL `json`  | `postgresql:JsonValue`                  | a bare `string` parameter → 42804               |
+| PostgreSQL `jsonb` | `postgresql:JsonBinaryValue` with JSON text | a bare `string` parameter → 42804; a `json` value → `invalid input syntax for type json` on the first `"` (as of postgresql 1.19, library#9836) |
+| PostgreSQL `json`  | `postgresql:JsonValue` with JSON text   | the same                                        |
 
 ```ballerina
 time:Utc receivedAt = time:utcNow();
-postgresql:JsonBinaryValue payloadValue = new (rawPayload);   // rawPayload is json|string
+postgresql:JsonBinaryValue payloadValue = new (payload.toJsonString());   // JSON text, not a json value
 _ = check dbClient->execute(`
     INSERT INTO events ("tradeId", payload, "receivedAt")
     VALUES (${tradeId}, ${payloadValue}, ${receivedAt})
@@ -111,7 +113,7 @@ The two directions of mismatch behave differently, and only one of them tells yo
 
 | Mismatch | Result |
 | -------- | ------ |
-| Record field with **no matching column** | **Silent.** The field is left at its zero value — no error |
+| Record field with **no matching column** | **Silent.** No error: an `int` reads `0`, a `string` or `decimal` holds `()` that panics when used (as of sql 1.19, library#9835) |
 | Column with **no matching record field** | `sql:FieldMismatchError` — *No mapping field found for SQL table column …* |
 
 Verified on `postgresql` 1.19.0 with a closed record and non-nilable fields:
@@ -121,8 +123,9 @@ type MissingRec record {| int id; string tradeId; string nosuchColumn; |};
 // SELECT id, tradeid FROM m   ->  {"id":1, "tradeId":"x", "nosuchColumn":null}
 ```
 
-"Zero value" is type-dependent — a `string` field comes back `null`, an `int` field comes
-back `0` — so a mistyped field name can look like real data rather than a gap. Open and
+The result is type-dependent: a `string` field comes back `()` even when its type isn't nilable
+(a string method on it then panics with `NullReferenceException`), an `int` field comes back `0`,
+so a mistyped field name can look like real data rather than a gap. Open and
 closed records behave the same way here. When a field is unexpectedly empty, check its name
 against the projection.
 

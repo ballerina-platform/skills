@@ -22,7 +22,7 @@ bal grpc --input service.proto --output ./generated --mode service
 | Symptom                                | Likely cause                                  | Fix                                                                  |
 | -------------------------------------- | --------------------------------------------- | -------------------------------------------------------------------- |
 | Upgrade request rejected               | Server not configured as a WebSocket endpoint | Use `websocket:Service` (or `http:WebSocketService`)                 |
-| Connection closes unexpectedly         | Idle timeout or missing ping/pong handler     | Configure `pingPongHandler` and raise `idleTimeoutInSeconds`         |
+| Connection closes unexpectedly         | Idle timeout (`idleTimeout`) reached          | Raise `idleTimeout` in `@websocket:ServiceConfig`. Pongs are sent automatically; declare `onPing`/`onPong` on the server's `websocket:Service` only to handle them yourself (`websocket:PingPongService` is a client's `pingPongHandler`) |
 | Messages not received                  | Frame size limit exceeded                     | Raise `maxFrameSize` in the listener config                          |
 | `101 Switching Protocols` missing      | A proxy/load balancer is stripping `Upgrade`  | Configure the proxy to forward WebSocket upgrade headers             |
 

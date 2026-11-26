@@ -1,5 +1,7 @@
 # Compiler and Language Issues
 
+**Contents:** Reading a compiler error · Common compile-time errors · Compiler crashes · Compiler plugin diagnostics · Java exceptions during compilation
+
 Compilation problems appear before the program starts and are deterministic — the same input always produces the same diagnostic.
 
 ## Reading a compiler error
@@ -71,7 +73,7 @@ Plugins enforcing common rules:
 | ------------------- | -------------------------------------------------------------------------- |
 | `ballerina/http`    | Service and resource method signatures, payload binding shapes             |
 | `ballerina/graphql` | Schema definitions, resolver signatures, union/interface usage             |
-| `ballerina/sql`     | SQL query syntax (on supported versions)                                   |
+| `ballerina/sql`     | Constant values in connection-pool settings and SQL parameter types        |
 | `ballerina/persist` | Entity definitions and relations                                           |
 | `ballerinax/kafka`  | Listener configurations and consumer signatures                            |
 

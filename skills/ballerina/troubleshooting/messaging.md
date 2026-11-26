@@ -1,5 +1,7 @@
 # Messaging Connectors — Kafka, RabbitMQ, NATS, JMS
 
+**Contents:** Kafka · RabbitMQ · NATS · JMS
+
 Messaging connectors share recurring failure modes: broker reachability, auth, destination existence, and consumer/producer config mismatches.
 
 ## Kafka
@@ -24,11 +26,11 @@ kafka:ConsumerConfiguration consumerConfig = {
 };
 ```
 
-### The service contract is not in the API dump
+### The service contract
 
 `kafka:Service` is declared as a bare marker (`distinct service object { }`) and the remote
-method is validated by a compiler plugin, so a library API dump shows an empty service body.
-That is not a tool failure and does not mean the service has no methods. The contract is:
+method is validated by a compiler plugin, so its source shows an empty service body
+(`bal discover service -p ballerinax/kafka --output-format text` prints the methods). The contract is:
 
 ```text
 service on kafkaListener {
@@ -136,11 +138,11 @@ Queue groups distribute messages across members (load balancing). Without a queu
 | Messages not consumed                       | `connection.start()` not called — JMS connections begin in stopped mode | Call `start()` on the connection before consuming                                                  |
 | `Queue not found` / `Destination not found` | Queue/topic missing on the broker                                       | Create the destination on the broker, or enable auto-creation if supported                         |
 | `Authentication failed`                     | Wrong credentials                                                       | Verify username/password in `jms:ConnectionConfiguration`                                          |
-| `ClassNotFoundException` for the provider   | Provider JAR missing from classpath                                     | Add the JMS provider JAR (e.g. ActiveMQ client) under `[[platform.java17.dependency]]` in `Ballerina.toml` |
+| `ClassNotFoundException` for the provider   | Provider JAR missing from classpath                                     | Add the JMS provider JAR (e.g. ActiveMQ client) under `[[platform.java21.dependency]]` in `Ballerina.toml` |
 
 Provider notes:
 
 - **ActiveMQ** — `initialContextFactory = "org.apache.activemq.jndi.ActiveMQInitialContextFactory"`, `providerUrl = "tcp://localhost:61616"`. Requires the ActiveMQ client JAR as a platform dependency.
 - **IBM MQ** — Use the IBM MQ JMS client JAR. Connection factory setup typically uses JNDI or direct configuration with `MQQueueConnectionFactory`. Refer to IBM MQ's documentation for the required properties.
 
-> JMS in Ballerina runs over Java interop. Provider JARs must be declared in `Ballerina.toml` under `[[platform.java17.dependency]]` (or the matching Java version).
+> JMS in Ballerina runs over Java interop. Provider JARs must be declared in `Ballerina.toml` under `[[platform.java21.dependency]]` (or `java25`, the 2201.14.x target).

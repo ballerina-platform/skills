@@ -1,5 +1,7 @@
 # Package and Dependency Issues
 
+**Contents:** Resolution failures · Version conflicts · Network, firewall, and proxy · Offline builds · Private packages
+
 Covers `bal pull` failures, version conflicts, proxy/firewall handling, offline builds, and private packages.
 
 ## Resolution failures
@@ -51,12 +53,6 @@ Find conflicts:
 
 ```bash
 bal build --dump-graph 2>&1 | grep -A 5 "conflict"
-```
-
-A typical error:
-
-```text
-error: dependency conflict: 'ballerina/http' version '2.9.0' and '2.11.0' are both required
 ```
 
 Options to resolve:

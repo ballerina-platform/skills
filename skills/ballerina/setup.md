@@ -53,14 +53,6 @@ bal version
 # Should output: Ballerina 2201.x.x ...
 ```
 
-## Create a New Project
-
-```bash
-bal new my-project     # creates a single-package project
-cd my-project
-bal run                # runs main.bal
-```
-
 ## Current LTS Version
 
 Check https://ballerina.io/downloads/ for the latest Swan Lake release. The active LTS is the Swan Lake 2201.x series.
