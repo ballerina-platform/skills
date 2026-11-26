@@ -32,7 +32,7 @@ compiles and then fails with SQL state `42804`:
 | PostgreSQL `jsonb` | `new postgresql:JsonBinaryValue(value.toJsonString())` |
 | PostgreSQL `json` | `new postgresql:JsonValue(value.toJsonString())` |
 
-Pass JSON text: `toJsonString()` for a `json` value; a `string` that already holds JSON text goes in as is
+Pass JSON text: `toJsonString()` on the record (or `json`) value; a `string` that already holds JSON text goes in as is
 (`toJsonString()` would quote it again). As of postgresql 1.19 a `json` value is sent with `toString()`, which doesn't
 escape quotes, backslashes or newlines, so the insert fails (library#9836).
 

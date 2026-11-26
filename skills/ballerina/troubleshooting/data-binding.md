@@ -11,7 +11,7 @@
 | `ConversionError` with `incompatible type`                                | The JSON value type doesn't match the record field (e.g. `"123"` vs `int`)                | Either change the record field type or transform the JSON before binding                          |
 | `cloneWithType` rejects extra fields (`{ballerina/lang.value}ConversionError`) | Target is a closed record; `cloneWithType` does no projection (`jsondata:parseString`/`parseAsType` drop extra fields by default) | Use `jsondata:parseAsType`, an open record, or list the extra fields explicitly |
 | `{ballerina/data.xmldata}ConversionError`                                 | XML structure mismatched the record                                                       | Check element names, namespaces, and attribute handling                                          |
-| `xml:fromString` error `Illegal processing instruction target ("xml")` | A byte order mark (BOM) before the XML declaration, from text decoded with `string:fromBytes()` or `getTextPayload()` (as of 2201.14, lang#44899) | For HTTP bodies use `getXmlPayload()`; for bytes `xmldata:parseBytes()`; otherwise drop a leading `"\u{FEFF}"` first (`trim()` keeps it) |
+| `xml:fromString` error `Illegal processing instruction target ("xml")` | A byte order mark (BOM) before the XML declaration, from text decoded with `string:fromBytes()` or `getTextPayload()` (as of 2201.14, lang#44899) | For HTTP bodies use `getXmlPayload()`; for a record from bytes `xmldata:parseBytes()`; otherwise drop a leading `"\u{FEFF}"` first (`trim()` keeps it) |
 | HTTP `PayloadBindingError` on the service side                            | Incoming body doesn't match the resource function parameter type                          | Verify `Content-Type` and inspect the body against the parameter type                            |
 | HTTP `PayloadBindingError` on the client side                             | Response body doesn't match the target type in the client call                            | Enable HTTP trace logs to see the actual response shape, then adjust the target type             |
 
@@ -33,14 +33,14 @@ type User record {
     int age = 0;       // default value — absent key uses the default
 };
 
-// Strict binding — reject unknown fields
+// Closed record — extra fields are dropped; allowDataProjection: false rejects them
 type StrictUser record {|
     string name;
     int age;
 |};
 
 // Parse with explicit options
-// Projection (dropping extra fields) is on by default; its options sit under allowDataProjection
+// Projection is on by default: a closed record drops extra fields, an open one keeps them
 User user = check jsondata:parseString(jsonStr, {
     allowDataProjection: {nilAsOptionalField: true}  // null JSON values become absent optional fields
 });

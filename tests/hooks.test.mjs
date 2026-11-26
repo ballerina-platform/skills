@@ -112,6 +112,16 @@ test("reading the code rules through Bash counts", () => {
     assert.equal(runHook("remind.mjs", { session_id: "s1", tool_name: "Write", tool_input: { file_path: "main.bal" } }), "");
 });
 
+test("listing the code rules file does not count as reading it", () => {
+    runHook("mark.mjs", { session_id: "s1", tool_name: "Skill", tool_input: { skill: "ballerina:ballerina" } });
+    runHook("mark.mjs", { session_id: "s1", tool_name: "Bash", tool_input: { command: "ls -l /p/skills/ballerina/code-rules.md" } });
+    assert.match(reminderOf(runHook("remind.mjs", { session_id: "s1", tool_name: "Write", tool_input: { file_path: "main.bal" } })), /code-rules\.md/);
+});
+
+test("a command that only starts with /ballerina does not count as loading the skill", () => {
+    assert.match(runHook("prompt-nudge.mjs", { session_id: "s1", prompt: "/ballerina-helper write a service", cwd: stateDir }), /ballerina/);
+});
+
 test("the code rules reminder waits for a real .bal write, not a read or a build", () => {
     runHook("mark.mjs", { session_id: "s1", tool_name: "Skill", tool_input: { skill: "ballerina:ballerina" } });
     for (const command of ["cat main.bal && bal build 2>&1 | head -40", "cat main.bal > /tmp/copy.txt", "sed -n '1,9p' main.bal",

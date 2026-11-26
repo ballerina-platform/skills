@@ -104,7 +104,7 @@ Lower `minIdleConnections` when traffic is bursty or when the database connectio
 
 ## Runtime threads
 
-Since 2201.11 each strand runs on a Java virtual thread, so there is no scheduler thread pool to size: `BALLERINA_MAX_POOL_SIZE` no longer has an effect. A blocking call (a JDBC driver, a third-party Java library) parks its own virtual thread instead of starving a shared pool.
+Since 2201.11 each strand runs on a Java virtual thread, so there is no scheduler thread pool to size: `BALLERINA_MAX_POOL_SIZE` no longer has an effect. A blocking call (a JDBC driver, a third-party Java library) parks its own virtual thread instead of starving a shared pool. On a distribution that bundles Java 21, a blocking call inside a Java `synchronized` block pins its carrier thread instead; 2201.14 bundles Java 25, where it doesn't.
 
 Diagnosing a hang:
 

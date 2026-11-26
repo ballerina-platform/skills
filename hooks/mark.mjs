@@ -25,7 +25,8 @@ if (input.session_id) {
     if (input.tool_name === "Skill" && isBallerinaSkill(toolInput.skill ?? toolInput.name)) {
         state.skill = true;
     }
-    const target = `${toolInput.file_path ?? ""} ${toolInput.command ?? ""}`.replace(/\\/g, "/");
+    const command = /^\s*(cat|head|tail|sed|less|more|nl)\s/.test(toolInput.command ?? "") ? toolInput.command : "";
+    const target = `${toolInput.file_path ?? ""} ${command}`.replace(/\\/g, "/");
     if (/ballerina\/code-rules\.md\b/.test(target)) {
         state.rules = true;
     }

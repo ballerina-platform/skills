@@ -40,7 +40,7 @@ function hasBallerinaFiles(dir, depth) {
 const input = readInput();
 if (input.session_id) {
     const state = loadState(input.session_id);
-    if (/^\s*\/(ballerina:)?ballerina\b/.test(String(input.prompt ?? ""))) {
+    if (/^\s*\/(ballerina:)?ballerina(\s|$)/.test(String(input.prompt ?? ""))) {
         state.skill = true;
         saveState(input.session_id, state);
     } else if (!state.skill && !state.nudged

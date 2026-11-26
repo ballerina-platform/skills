@@ -167,8 +167,11 @@ async function remoteFiles(slug, ref) {
         return [];
     }
     const names = (await listing.json()).map((entry) => entry.name);
-    return Promise.all(names.filter((name) => /\.(bal|md)$/.test(name)).sort().map(async (name) =>
-        ({ name, text: await (await fetch(`${RAW_REPO}/${ref}/examples/${slug}/${name}`)).text() })));
+    const files = await Promise.all(names.filter((name) => /\.(bal|md)$/.test(name)).sort().map(async (name) => {
+        const response = await fetch(`${RAW_REPO}/${ref}/examples/${slug}/${name}`);
+        return response.ok ? { name, text: await response.text() } : undefined;
+    }));
+    return files.filter(Boolean);
 }
 
 async function printExample(slug, explain) {

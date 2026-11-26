@@ -58,7 +58,7 @@ The part in braces names the module that raised the error: `{ballerina}` is the 
 | `{ballerina}StackOverflow`               | Recursive function missing a base case                               | Add the base case, or switch to an iterative form                                         |
 | `{ballerina}JSONOperationError`          | Field access on a `json` value that is not a mapping (`five.a`)      | Check the shape before drilling in, or convert to a record first                         |
 | `{ballerina/lang.int}NumberParsingError` | `int:fromString("abc")` (`float:`/`decimal:` have their own)         | Handle the `error` the function returns; validate input before converting                |
-| `{ballerina/lang.array}IndexOutOfRange`  | Reading past the end of an array or tuple                            | Guard with `if i < arr.length()`                                                          |
+| `{ballerina/lang.array}IndexOutOfRange`  | An index below 0 or past the end of an array or tuple                | Guard with `if i >= 0 && i < arr.length()`                                                |
 | `{ballerina/lang.map}KeyNotFound`        | `m.get(k)`, `m.remove(k)`, or `json` field access, on a key that is not present | Use `m.hasKey(k)`, member access `m[k]` (returns `()`) or `m.removeIfHasKey(k)`; `j?.k` for optional `json` keys |
 
 ### Worked example — `TypeCastError`
@@ -119,7 +119,7 @@ The first frame in your own code (`main.bal:7` above) is where that strand is wa
 
 ### Suspecting a deadlock
 
-1. Take two dumps a few seconds apart. Strands whose stacks do not change are stuck.
+1. Take two dumps a few seconds apart. Strands whose stacks do not change are candidates: rule out an expected wait (a long `runtime:sleep`, a slow call) before calling them stuck.
 2. Several stuck strands at the same `lock` block, or at worker sends (`->`) and receives (`<-`) that never pair up, show the contention. Use the file:line in each frame.
 3. Common fixes: shrink the scope of `lock` blocks, take locks in the same order at every call site, or remove shared mutable state. Every worker `->` needs a matching `<-`.
 
